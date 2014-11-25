@@ -1,0 +1,8 @@
+.idea
+parameters.yml
+composer.phar
+vendor
+
+# osx noise
+.DS_Store
+profile
