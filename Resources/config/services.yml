@@ -1,5 +1,7 @@
 services:
-#    keboola_geocoding_b.example:
-#        class: Keboola\GeocodingBundle
-\Example
-#        arguments: [@service_id, "plain_value", %parameter%]
+    ag_geocoding.shared_storage:
+        class: Keboola\GeocodingBundle\Service\SharedStorage
+        arguments: [@doctrine]
+    ag_geocoding.job_executor:
+        class: Keboola\GeocodingBundle\JobExecutor
+        arguments: [@ag_geocoding.shared_storage, @syrup.temp, @logger, %google_key%, %mapquest_key%]

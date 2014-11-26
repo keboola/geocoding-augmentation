@@ -1,11 +1,9 @@
 <?php
 
-namespace Keboola\GeocodingBundle
-;
+namespace Keboola\GeocodingBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class KeboolaGeocodingBundle
- extends Bundle
+class KeboolaGeocodingBundle extends Bundle
 {
 }

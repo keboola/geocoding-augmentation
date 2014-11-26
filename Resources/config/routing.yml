@@ -1,4 +1,0 @@
-keboola_geocoding_b_homepage:
-    path:     /hello/{name}
-    defaults: { _controller: KeboolaGeocodingBundle
-:Default:index }
