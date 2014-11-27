@@ -19,6 +19,7 @@ use Keboola\GeocodingBundle\Service\SharedStorage;
 use Keboola\GeocodingBundle\Service\UserStorage;
 use Keboola\GeocodingBundle\Geocoder\GuzzleAdapter;
 use Monolog\Logger;
+use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
 use Syrup\ComponentBundle\Job\Metadata\Job;
 
@@ -61,13 +62,20 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 
 	public function execute(Job $job)
 	{
+		$params = $job->getParams();
+
+		if (!isset($params['tableId'])) {
+			throw new UserException('Parameter tableId is required');
+		}
+		if (!isset($params['column'])) {
+			throw new UserException('Parameter column is required');
+		}
+
 		$this->eventLogger = new EventLogger($this->storageApi, $job->getId());
 		$this->userStorage = new UserStorage($this->storageApi, $this->temp);
 
 		$addressesInBatch = 50;
 		$batchNum = 1;
-
-		$params = $job->getParams();
 
 		// Download file with data column to disk and read line-by-line
 		// Query Geocoding API by 50 addresses
