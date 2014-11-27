@@ -83,7 +83,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 					if (!in_array($line[0], $locations)) {
 						$locations[] = $line[0];
 						if (count($locations) >= $addressesInBatch) {
-							$this->process($locations);
+							$this->getCoordinates($locations);
 							$locations = array();
 							$this->eventLogger->log(sprintf('Processed %d addresses', $batchNum * $addressesInBatch));
 							$batchNum++;
@@ -93,22 +93,15 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			}
 		}
 		if (count($locations)) {
-			$this->process($locations);
+			$this->getCoordinates($locations);
 		}
 		fclose($handle);
 
+		$this->userStorage->uploadData();
 	}
-
-	public function process($locations)
-	{
-		$coordinates = $this->getCoordinates($locations);
-		$this->userStorage->saveCoordinates($coordinates);
-	}
-
 
 	public function getCoordinates($locations)
 	{
-		$result = array();
 		$savedLocations = $this->sharedStorage->getSavedLocations($locations);
 
 		$locationsToSave = array();
@@ -118,11 +111,11 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 					$locationsToSave[] = $loc;
 				}
 			} else {
-				$result[] = array(
+				$this->userStorage->saveCoordinates(array(
 					'address' => $loc,
 					'latitude' => $savedLocations[$loc]['latitude'],
 					'longitude' => $savedLocations[$loc]['longitude']
-				);
+				));
 			}
 		}
 
@@ -141,11 +134,12 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			foreach ($geocoded as $g) {
 				/** @var \League\Geotools\Batch\BatchGeocoded $g */
 				$error = $g->getLatitude() == 0 && $g->getLongitude() == 0;
-				$result[] = array(
+
+				$this->userStorage->saveCoordinates(array(
 					'address' => $g->getQuery(),
 					'latitude' => $error? '-' : $g->getLatitude(),
 					'longitude' => $error? '-' : $g->getLongitude()
-				);
+				));
 				$this->sharedStorage->saveLocation(
 					$g->getQuery(),
 					$g->getLatitude(),
@@ -158,8 +152,6 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				}
 			}
 		}
-
-		return $result;
 	}
 
 }

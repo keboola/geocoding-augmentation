@@ -8,6 +8,7 @@
 
 namespace Keboola\GeocodingBundle\Service;
 
+use Keboola\Csv\CsvFile;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Table as StorageApiTable;
 use Keboola\StorageApi\Client;
@@ -25,6 +26,7 @@ class UserStorage
 	 * @var \Syrup\ComponentBundle\Filesystem\Temp
 	 */
 	protected $temp;
+	protected $files = array();
 
 	const BUCKET_NAME = 'ag-geocoding';
 	const BUCKET_ID = 'in.c-ag-geocoding';
@@ -47,23 +49,31 @@ class UserStorage
 
 	public function saveCoordinates($data)
 	{
-		$this->updateTable(self::COOORDINATES_TABLE_NAME, $data);
+		if (!isset($this->files[self::COOORDINATES_TABLE_NAME])) {
+			$this->files[self::COOORDINATES_TABLE_NAME] = new CsvFile($this->temp->createTmpFile());
+			$this->files[self::COOORDINATES_TABLE_NAME]->writeRow($this->tables[self::COOORDINATES_TABLE_NAME]['columns']);
+		}
+		$this->files[self::COOORDINATES_TABLE_NAME]->writeRow($data);
 	}
 
-	public function updateTable($tableName, $data)
+	public function uploadData()
 	{
-		if (!isset($this->tables[$tableName])) {
-			throw new \Exception('Storage table ' . $tableName . ' not found');
-		}
-
 		if (!$this->storageApiClient->bucketExists(self::BUCKET_ID)) {
 			$this->storageApiClient->createBucket(self::BUCKET_NAME, 'in', 'Geocoding Data Storage');
 		}
-		$table = new StorageApiTable($this->storageApiClient, self::BUCKET_ID . '.' . $tableName, null, $this->tables[$tableName]['primaryKey']);
-		$table->setHeader(array_keys(current($data)));
-		$table->setFromArray($data);
-		$table->setIncremental(true);
-		$table->save();
+
+		foreach($this->files as $name => $file) {
+			$tableId = self::BUCKET_ID . "." . $name;
+			try {
+				if(!$this->storageApiClient->tableExists($tableId)) {
+					$this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file);
+				} else {
+					$this->storageApiClient->writeTableAsync($tableId, $file);
+				}
+			} catch(\Keboola\StorageApi\ClientException $e) {
+				throw new UserException($e->getMessage(), $e);
+			}
+		}
 	}
 
 	public function getTableColumnData($tableId, $column)
