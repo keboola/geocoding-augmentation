@@ -65,10 +65,16 @@ class UserStorage
 		foreach($this->files as $name => $file) {
 			$tableId = self::BUCKET_ID . "." . $name;
 			try {
+				$options = array(
+					'incremental' => true
+				);
+				if (!empty($this->tables[$name]['primaryKey'])) {
+					$options['primaryKey'] = $this->tables[$name]['primaryKey'];
+				}
 				if(!$this->storageApiClient->tableExists($tableId)) {
-					$this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file);
+					$this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file, $options);
 				} else {
-					$this->storageApiClient->writeTableAsync($tableId, $file);
+					$this->storageApiClient->writeTableAsync($tableId, $file, $options);
 				}
 			} catch(\Keboola\StorageApi\ClientException $e) {
 				throw new UserException($e->getMessage(), $e);
