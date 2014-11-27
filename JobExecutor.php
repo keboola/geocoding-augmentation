@@ -116,6 +116,9 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 					'latitude' => $savedLocations[$loc]['latitude'],
 					'longitude' => $savedLocations[$loc]['longitude']
 				));
+				if ($savedLocations[$loc]['latitude'] == 0 && $savedLocations[$loc]['longitude'] == 0) {
+					$this->eventLogger->log('No coordinates for address "' . $loc . '" found', array(), null, EventLogger::TYPE_WARN);
+				}
 			}
 		}
 
