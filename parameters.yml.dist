@@ -1,0 +1,17 @@
+parameters:
+    app_name: ag-geocoding
+    encryption_key: '' # 256-bit random key
+
+    database_driver:
+    database_host:
+    database_port:
+    database_name:
+    database_user:
+    database_password:
+
+    google_key: '' # API key for Google Geocoding API
+    mapquest_key: '' # API key for MapQuest API
+
+    components:
+        ag-geocoding:
+            bundle: "Keboola\\GeocodingBundle\\KeboolaGeocodingBundle"
