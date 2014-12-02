@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit backupGlobals="false"
+		 backupStaticAttributes="false"
+		 colors="true"
+		 convertErrorsToExceptions="true"
+		 convertNoticesToExceptions="true"
+		 convertWarningsToExceptions="true"
+		 processIsolation="false"
+		 stopOnFailure="true"
+		 syntaxCheck="false"
+		 bootstrap="Tests/bootstrap.php">
+	<php>
+		<server name="KERNEL_DIR" value="vendor/keboola/syrup/app/" />
+		<ini name="display_errors" value="true"/>
+	</php>
+	<testsuites>
+		<testsuite name="part-1">
+            <file>Tests/Controller/DefaultControllerTest.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>
