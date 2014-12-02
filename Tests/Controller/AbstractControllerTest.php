@@ -87,7 +87,7 @@ abstract class AbstractControllerTest extends WebTestCase
 	 * @param string $url URL of API call
 	 * @param array $params parameters of POST call
 	 * @param string $method HTTP method of API call
-	 * @return array
+	 * @return Job
 	 */
 	protected function processJob($url, $params=array(), $method='POST')
 	{
@@ -98,9 +98,7 @@ abstract class AbstractControllerTest extends WebTestCase
 			'jobId' => $responseJson['id']
 		));
 
-		$job = $this->jobManager->getJob($responseJson['id']);
-		$this->assertEquals(Job::STATUS_SUCCESS, $job->getStatus(), sprintf("Status of job '%s' should be success. Result:\n%s\n", $url, json_encode($job->getResult())));
-		return $job;
+		return $this->jobManager->getJob($responseJson['id']);
 	}
 
 }
