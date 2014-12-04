@@ -8,6 +8,8 @@
 
 namespace Keboola\GeocodingBundle;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\DBAL\Connection;
 use Geocoder\Geocoder;
 use Geocoder\Provider\ChainProvider;
 use Geocoder\Provider\GoogleMapsProvider;
@@ -18,6 +20,8 @@ use Keboola\GeocodingBundle\Service\EventLogger;
 use Keboola\GeocodingBundle\Service\SharedStorage;
 use Keboola\GeocodingBundle\Service\UserStorage;
 use Keboola\GeocodingBundle\Geocoder\GuzzleAdapter;
+use League\Geotools\Batch\Batch;
+use League\Geotools\Exception\InvalidArgumentException;
 use Monolog\Logger;
 use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
@@ -25,13 +29,6 @@ use Syrup\ComponentBundle\Job\Metadata\Job;
 
 class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 {
-	protected $googleApiKey;
-	protected $mapQuestKey;
-
-	/**
-	 * @var SharedStorage
-	 */
-	protected $sharedStorage;
 	/**
 	 * @var \Syrup\ComponentBundle\Filesystem\Temp
 	 */
@@ -48,27 +45,46 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	 * @var EventLogger
 	 */
 	protected $eventLogger;
+	/**
+	 * @var Batch
+	 */
+	protected $geotoolsBatch;
 
 
-	public function __construct(SharedStorage $sharedStorage, Temp $temp, Logger $logger, $googleApiKey, $mapQuestKey)
+	public function __construct(Registry $doctrine, Temp $temp, Logger $logger, $googleApiKey, $mapQuestKey)
 	{
-		$this->sharedStorage = $sharedStorage;
+		$adapter = new GuzzleAdapter();
+		$geocoder = new Geocoder();
+		$geocoder->registerProvider(new ChainProvider(array(
+			new GoogleMapsProvider($adapter, null, null, true, $googleApiKey),
+			new MapQuestProvider($adapter, $mapQuestKey),
+			new YandexProvider($adapter),
+			new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
+		)));
+		$cache = new Geotools\Cache\Doctrine($doctrine->getConnection());
+		$geotools = new \League\Geotools\Geotools();
+		$this->geotoolsBatch = $geotools->batch($geocoder)->setCache($cache);
+
 		$this->temp = $temp;
 		$this->logger = $logger;
-
-		$this->googleApiKey = $googleApiKey;
-		$this->mapQuestKey = $mapQuestKey;
 	}
 
 	public function execute(Job $job)
 	{
 		$params = $job->getParams();
+		$forwardGeocoding = $job->getCommand() == 'geocode';
 
 		if (!isset($params['tableId'])) {
 			throw new UserException('Parameter tableId is required');
 		}
-		if (!isset($params['column'])) {
-			throw new UserException('Parameter column is required');
+		if ($forwardGeocoding &&!isset($params['address'])) {
+			throw new UserException('Parameter address is required');
+		}
+		if (!$forwardGeocoding && !isset($params['latitude'])) {
+			throw new UserException('Parameter latitude is required');
+		}
+		if (!$forwardGeocoding && !isset($params['longitude'])) {
+			throw new UserException('Parameter longitude is required');
 		}
 
 		$this->eventLogger = new EventLogger($this->storageApi, $job->getId());
@@ -79,7 +95,8 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 
 		// Download file with data column to disk and read line-by-line
 		// Query Geocoding API by 50 addresses
-		$locationsFile = $this->userStorage->getTableColumnData($params['tableId'], $params['column']);
+		$userTableParams = $forwardGeocoding? $params['address'] : array($params['latitude'], $params['longitude']);
+		$locationsFile = $this->userStorage->getTableData($params['tableId'], $userTableParams);
 		$locations = array();
 		$firstRow = true;
 		$handle = fopen($locationsFile, "r");
@@ -89,9 +106,22 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 					$firstRow = false;
 				} else {
 					if (!in_array($line[0], $locations)) {
-						$locations[] = $line[0];
+
+						if ($forwardGeocoding) {
+							$locations[] = $line[0];
+						} else {
+							try {
+								$coord = new \League\Geotools\Coordinate\Coordinate(array($line[0], $line[1]));
+								$locations[] = $coord;
+							} catch (InvalidArgumentException $e) {
+								$this->eventLogger->log(sprintf('Value %s,%s is not valid coordinates', $line[0], $line[1]),
+									array(), null, EventLogger::TYPE_WARN);
+							}
+						}
+
 						if (count($locations) >= $addressesInBatch) {
-							$this->getCoordinates($locations);
+							$this->geocodeBatch($forwardGeocoding, $locations);
+
 							$locations = array();
 							$this->eventLogger->log(sprintf('Processed %d addresses', $batchNum * $addressesInBatch));
 							$batchNum++;
@@ -101,66 +131,38 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			}
 		}
 		if (count($locations)) {
-			$this->getCoordinates($locations);
+			$this->geocodeBatch($forwardGeocoding, $locations);
 		}
 		fclose($handle);
 
 		$this->userStorage->uploadData();
 	}
 
-	public function getCoordinates($locations)
+
+	public function geocodeBatch($forwardGeocoding, $queries)
 	{
-		$savedLocations = $this->sharedStorage->getSavedLocations($locations);
+		$geocoded = $forwardGeocoding
+			? $this->geotoolsBatch->geocode($queries)->parallel()
+			: $this->geotoolsBatch->reverse($queries)->parallel();
 
-		$locationsToSave = array();
-		foreach ($locations as $loc) {
-			if (!isset($savedLocations[$loc])) {
-				if (!in_array($loc, $locationsToSave)) {
-					$locationsToSave[] = $loc;
-				}
-			} else {
-				$this->userStorage->saveCoordinates(array(
-					'address' => $loc,
-					'latitude' => $savedLocations[$loc]['latitude'],
-					'longitude' => $savedLocations[$loc]['longitude']
-				));
-				if ($savedLocations[$loc]['latitude'] == 0 && $savedLocations[$loc]['longitude'] == 0) {
-					$this->eventLogger->log('No coordinates for address "' . $loc . '" found', array(), null, EventLogger::TYPE_WARN);
-				}
-			}
-		}
+		foreach ($geocoded as $g) {
+			/** @var \League\Geotools\Batch\BatchGeocoded $g */
+			$error = $forwardGeocoding
+				? $g->getLatitude() == 0 && $g->getLongitude() == 0
+				: !$g->getCountry();
 
-		if (count($locationsToSave)) {
-			$adapter = new GuzzleAdapter();
-			$geocoder = new Geocoder();
-			$geocoder->registerProvider(new ChainProvider(array(
-				new GoogleMapsProvider($adapter, null, null, true, $this->googleApiKey),
-				new MapQuestProvider($adapter, $this->mapQuestKey),
-				new YandexProvider($adapter),
-				new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
-			)));
-			$geotools = new \League\Geotools\Geotools();
+			$data = array('query' => $g->getQuery());
+			$data = array_merge($data, $g->toArray());
+			$data['bounds_south'] = $data['bounds']['south'];
+			$data['bounds_east'] = $data['bounds']['east'];
+			$data['bounds_west'] = $data['bounds']['west'];
+			$data['bounds_north'] = $data['bounds']['north'];
+			unset($data['bounds']);
 
-			$geocoded = $geotools->batch($geocoder)->geocode($locationsToSave)->parallel();
-			foreach ($geocoded as $g) {
-				/** @var \League\Geotools\Batch\BatchGeocoded $g */
-				$error = $g->getLatitude() == 0 && $g->getLongitude() == 0;
+			$this->userStorage->save($forwardGeocoding, $data);
 
-				$this->userStorage->saveCoordinates(array(
-					'address' => $g->getQuery(),
-					'latitude' => $error? '-' : $g->getLatitude(),
-					'longitude' => $error? '-' : $g->getLongitude()
-				));
-				$this->sharedStorage->saveLocation(
-					$g->getQuery(),
-					$g->getLatitude(),
-					$g->getLongitude(),
-					$g->getProviderName(),
-					$g->getExceptionMessage()
-				);
-				if ($error) {
-					$this->eventLogger->log('No coordinates for address "' . $g->getQuery() . '" found', array(), null, EventLogger::TYPE_WARN);
-				}
+			if ($error) {
+				$this->eventLogger->log('No coordinates for address "' . $g->getQuery() . '" found', array(), null, EventLogger::TYPE_WARN);
 			}
 		}
 	}

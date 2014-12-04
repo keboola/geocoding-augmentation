@@ -9,9 +9,9 @@ class DefaultControllerTest extends AbstractControllerTest
 
     protected function runAugmentation($tableId, $column)
     {
-        $job = $this->processJob('ag-geocoding/run', array(
+        $job = $this->processJob('ag-geocoding/geocode', array(
             'tableId' => $tableId,
-            'column' => $column
+            'address' => $column
         ));
         $this->assertEquals(Job::STATUS_SUCCESS, $job->getStatus(), sprintf("Status of augmentation job should be success. Result:\n%s\n",
             json_encode($job->getResult())));

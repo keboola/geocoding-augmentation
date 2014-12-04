@@ -30,14 +30,14 @@ class UserStorage
 
 	const BUCKET_NAME = 'ag-geocoding';
 	const BUCKET_ID = 'in.c-ag-geocoding';
-	const COOORDINATES_TABLE_NAME = 'coordinates';
+	const COORDINATES_TABLE_NAME = 'coordinates';
+	const LOCATIONS_TABLE_NAME = 'locations';
 
 	public $tables = array(
-		self::COOORDINATES_TABLE_NAME => array(
-			'columns' => array('address', 'latitude', 'longitude'),
-			'primaryKey' => 'address',
-			'indices' => array()
-		)
+		'columns' => array('query', 'latitude', 'longitude', 'streetNumber', 'streetName', 'zipcode', 'city',
+			'cityDistrict', 'county', 'countyCode', 'region', 'regionCode', 'country', 'countryCode', 'timezone',
+			'bounds_south', 'bounds_east', 'bounds_west', 'bounds_north'),
+		'primaryKey' => 'query'
 	);
 
 
@@ -47,13 +47,15 @@ class UserStorage
 		$this->temp = $temp;
 	}
 
-	public function saveCoordinates($data)
+	public function save($forward, $data)
 	{
-		if (!isset($this->files[self::COOORDINATES_TABLE_NAME])) {
-			$this->files[self::COOORDINATES_TABLE_NAME] = new CsvFile($this->temp->createTmpFile());
-			$this->files[self::COOORDINATES_TABLE_NAME]->writeRow($this->tables[self::COOORDINATES_TABLE_NAME]['columns']);
+		$table = $forward? self::COORDINATES_TABLE_NAME : self::LOCATIONS_TABLE_NAME;
+
+		if (!isset($this->files[$table])) {
+			$this->files[$table] = new CsvFile($this->temp->createTmpFile());
+			$this->files[$table]->writeRow($this->tables['columns']);
 		}
-		$this->files[self::COOORDINATES_TABLE_NAME]->writeRow($data);
+		$this->files[$table]->writeRow($data);
 	}
 
 	public function uploadData()
@@ -68,8 +70,8 @@ class UserStorage
 				$options = array(
 					'incremental' => true
 				);
-				if (!empty($this->tables[$name]['primaryKey'])) {
-					$options['primaryKey'] = $this->tables[$name]['primaryKey'];
+				if (!empty($this->tables['primaryKey'])) {
+					$options['primaryKey'] = $this->tables['primaryKey'];
 				}
 				if(!$this->storageApiClient->tableExists($tableId)) {
 					$this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file, $options);
@@ -82,11 +84,11 @@ class UserStorage
 		}
 	}
 
-	public function getTableColumnData($tableId, $column)
+	public function getTableData($tableId, $columns)
 	{
 		$params = array(
 			'format' => 'escaped',
-			'columns' => array($column)
+			'columns' => is_array($columns)? $columns : array($columns)
 		);
 
 		$file = $this->temp->createTmpFile();
