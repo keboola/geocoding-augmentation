@@ -66,10 +66,11 @@ class UserStorage
 
 		foreach($this->files as $name => $file) {
 			$tableId = self::BUCKET_ID . "." . $name;
+			if ($this->storageApiClient->tableExists($tableId)) {
+				$this->storageApiClient->dropTable($tableId);
+			}
 			try {
-				$options = array(
-					'incremental' => true
-				);
+				$options = array();
 				if (!empty($this->tables['primaryKey'])) {
 					$options['primaryKey'] = $this->tables['primaryKey'];
 				}
