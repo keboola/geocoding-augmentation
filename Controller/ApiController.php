@@ -22,7 +22,7 @@ class ApiController extends \Syrup\ComponentBundle\Controller\ApiController
     public function geocodeAction(Request $request)
     {
         $params = $this->getPostJson($request);
-        $this->checkRequiredParams($params, array('tableId', 'address'));
+        $this->checkRequiredParams($params, array('tableId', 'location'));
         $this->checkMappingParams($params);
         return $this->enqueueJob('geocode', $params);
     }

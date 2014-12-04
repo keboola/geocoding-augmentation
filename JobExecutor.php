@@ -9,7 +9,6 @@
 namespace Keboola\GeocodingBundle;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\DBAL\Connection;
 use Geocoder\Geocoder;
 use Geocoder\Provider\ChainProvider;
 use Geocoder\Provider\GoogleMapsProvider;
@@ -17,7 +16,6 @@ use Geocoder\Provider\MapQuestProvider;
 use Geocoder\Provider\NominatimProvider;
 use Geocoder\Provider\YandexProvider;
 use Keboola\GeocodingBundle\Service\EventLogger;
-use Keboola\GeocodingBundle\Service\SharedStorage;
 use Keboola\GeocodingBundle\Service\UserStorage;
 use Keboola\GeocodingBundle\Geocoder\GuzzleAdapter;
 use League\Geotools\Batch\Batch;
@@ -77,8 +75,8 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 		if (!isset($params['tableId'])) {
 			throw new UserException('Parameter tableId is required');
 		}
-		if ($forwardGeocoding &&!isset($params['address'])) {
-			throw new UserException('Parameter address is required');
+		if ($forwardGeocoding &&!isset($params['location'])) {
+			throw new UserException('Parameter location is required');
 		}
 		if (!$forwardGeocoding && !isset($params['latitude'])) {
 			throw new UserException('Parameter latitude is required');
@@ -90,12 +88,12 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 		$this->eventLogger = new EventLogger($this->storageApi, $job->getId());
 		$this->userStorage = new UserStorage($this->storageApi, $this->temp);
 
-		$addressesInBatch = 50;
+		$locationsInBatch = 50;
 		$batchNum = 1;
 
 		// Download file with data column to disk and read line-by-line
-		// Query Geocoding API by 50 addresses
-		$userTableParams = $forwardGeocoding? $params['address'] : array($params['latitude'], $params['longitude']);
+		// Query Geocoding API by 50 queries
+		$userTableParams = $forwardGeocoding? $params['location'] : array($params['latitude'], $params['longitude']);
 		$locationsFile = $this->userStorage->getTableData($params['tableId'], $userTableParams);
 		$locations = array();
 		$firstRow = true;
@@ -110,20 +108,24 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 						if ($forwardGeocoding) {
 							$locations[] = $line[0];
 						} else {
-							try {
-								$coord = new \League\Geotools\Coordinate\Coordinate(array($line[0], $line[1]));
-								$locations[] = $coord;
-							} catch (InvalidArgumentException $e) {
+							if ($line[0] === null || $line[1] === null || !is_numeric($line[0]) || !is_numeric($line[1])) {
 								$this->eventLogger->log(sprintf('Value %s,%s is not valid coordinates', $line[0], $line[1]),
 									array(), null, EventLogger::TYPE_WARN);
+							} else {
+								try {
+									$locations[] = new \League\Geotools\Coordinate\Coordinate(array($line[0], $line[1]));
+								} catch (InvalidArgumentException $e) {
+									$this->eventLogger->log(sprintf('Value %s,%s is not valid coordinates', $line[0], $line[1]),
+										array(), null, EventLogger::TYPE_WARN);
+								}
 							}
 						}
 
-						if (count($locations) >= $addressesInBatch) {
+						if (count($locations) >= $locationsInBatch) {
 							$this->geocodeBatch($forwardGeocoding, $locations);
 
 							$locations = array();
-							$this->eventLogger->log(sprintf('Processed %d addresses', $batchNum * $addressesInBatch));
+							$this->eventLogger->log(sprintf('Processed %d locations', $batchNum * $locationsInBatch));
 							$batchNum++;
 						}
 					}
@@ -162,7 +164,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			$this->userStorage->save($forwardGeocoding, $data);
 
 			if ($error) {
-				$this->eventLogger->log('No coordinates for address "' . $g->getQuery() . '" found', array(), null, EventLogger::TYPE_WARN);
+				$this->eventLogger->log('No result for location "' . $g->getQuery() . '" found', array(), null, EventLogger::TYPE_WARN);
 			}
 		}
 	}
