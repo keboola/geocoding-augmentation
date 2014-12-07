@@ -11,7 +11,7 @@ class DefaultControllerTest extends AbstractControllerTest
     {
         $job = $this->processJob('ag-geocoding/geocode', array(
             'tableId' => $tableId,
-            'address' => $column
+            'location' => $column
         ));
         $this->assertEquals(Job::STATUS_SUCCESS, $job->getStatus(), sprintf("Status of augmentation job should be success. Result:\n%s\n",
             json_encode($job->getResult())));

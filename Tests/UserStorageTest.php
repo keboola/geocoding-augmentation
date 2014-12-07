@@ -52,7 +52,7 @@ class UserStorageTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 
 		$data2 = array();
 		foreach ($csv2 as $r) {
-			$data2[] = $r[0];
+			$data2[] = array($r[0], $r[1]);
 		}
 		$this->assertEquals(array(
 			array("35.235","57.453"),

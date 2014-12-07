@@ -5,6 +5,7 @@
  */
 namespace Keboola\GeocodingBundle\Tests\Controller;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase,
 	Symfony\Bundle\FrameworkBundle\Console\Application,
 	Symfony\Component\Console\Tester\CommandTester;
@@ -60,6 +61,11 @@ abstract class AbstractControllerTest extends WebTestCase
 			'token' => $this->storageApiToken,
 			'url' => $container->getParameter('storage_api.test.url'))
 		);
+
+		/** To make annotations work here */
+		AnnotationRegistry::registerAutoloadNamespaces(array(
+			'Sensio\\Bundle\\FrameworkExtraBundle' => '../../vendor/sensio/framework-extra-bundle/'
+		));
 	}
 
 	/**
@@ -92,7 +98,8 @@ abstract class AbstractControllerTest extends WebTestCase
 	protected function processJob($url, $params=array(), $method='POST')
 	{
 		$responseJson = $this->callApi($url, $method, $params);
-		$this->assertArrayHasKey('id', $responseJson, sprintf("Response of API call '%s' should contain 'id' key.", $url));
+		$this->assertArrayHasKey('id', $responseJson, sprintf("Response of API call '%s' should contain 'id' key. Result is:\n%s\n",
+			$url, json_encode($responseJson)));
 		$this->commandTester->execute(array(
 			'command' => 'syrup:run-job',
 			'jobId' => $responseJson['id']
