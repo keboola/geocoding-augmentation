@@ -10,9 +10,11 @@ namespace Keboola\GeocodingBundle\Service;
 
 use Keboola\Csv\CsvFile;
 use Keboola\StorageApi\ClientException;
-use Keboola\StorageApi\Table as StorageApiTable;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\TableExporter;
+use League\Geotools\Batch\BatchGeocoded;
+use Symfony\Component\Process\Process;
+use Syrup\ComponentBundle\Exception\SyrupComponentException;
 use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
 
@@ -34,9 +36,9 @@ class UserStorage
 	const LOCATIONS_TABLE_NAME = 'locations';
 
 	public $tables = array(
-		'columns' => array('query', 'latitude', 'longitude', 'streetNumber', 'streetName', 'zipcode', 'city',
-			'cityDistrict', 'county', 'countyCode', 'region', 'regionCode', 'country', 'countryCode', 'timezone',
-			'bounds_south', 'bounds_east', 'bounds_west', 'bounds_north'),
+		'columns' => array('query', 'provider', 'latitude', 'longitude', 'bounds_south', 'bounds_east', 'bounds_west',
+			'bounds_north', 'streetNumber', 'streetName', 'city', 'zipcode', 'cityDistrict', 'county', 'countyCode',
+			'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage'),
 		'primaryKey' => 'query'
 	);
 
@@ -85,18 +87,17 @@ class UserStorage
 		}
 	}
 
-	public function getTableData($tableId, $columns)
+	public function getData($tableId, $columns)
 	{
+		// Get from SAPI
+		$downloadedFile = $this->temp->createTmpFile();
 		$params = array(
 			'format' => 'escaped',
 			'columns' => is_array($columns)? $columns : array($columns)
 		);
-
-		$file = $this->temp->createTmpFile();
-		$fileName = $file->getRealPath();
 		try {
 			$exporter = new TableExporter($this->storageApiClient);
-			$exporter->exportTable($tableId, $fileName, $params);
+			$exporter->exportTable($tableId, $downloadedFile->getRealPath(), $params);
 		} catch (ClientException $e) {
 			if ($e->getCode() == 404) {
 				throw new UserException($e->getMessage(), $e);
@@ -105,6 +106,34 @@ class UserStorage
 			}
 		}
 
-		return $fileName;
+		if (!file_exists($downloadedFile->getRealPath())) {
+			$e = new SyrupComponentException(500, 'Download from SAPI failed');
+			$e->setData(array(
+				'tableId' => $tableId,
+				'columns' => $columns
+			));
+			throw $e;
+		}
+
+		// Deduplicate data
+		$processedFile = $this->temp->createTmpFile();
+		$process = new Process(sprintf('sed -e "1d" %s | sort | uniq > %s', $downloadedFile->getRealPath(), $processedFile->getRealPath()));
+		$process->setTimeout(null);
+		$process->run();
+		$error = $process->getErrorOutput();
+		$output = $process->getOutput();
+
+		if ($process->isSuccessful() && !$error && file_exists($processedFile->getRealPath())) {
+			return $processedFile;
+		} else {
+			$e = new SyrupComponentException(500, 'Deduplication failed');
+			$e->setData(array(
+				'tableId' => $tableId,
+				'columns' => $columns,
+				'error' => $error,
+				'output' => $output
+			));
+			throw $e;
+		}
 	}
 } 

@@ -1,8 +1,6 @@
-CREATE TABLE `geotools_cache` (
-  `id` varchar(128) NOT NULL DEFAULT '',
+CREATE TABLE `geocoding_cache` (
+  `query` varchar(128) NOT NULL,
   `providerName` varchar(20) NOT NULL DEFAULT '',
-  `query` varchar(128) NOT NULL DEFAULT '',
-  `exceptionMessage` varchar(255) DEFAULT NULL,
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL,
   `bounds_north` decimal(10,7) DEFAULT NULL,
@@ -21,6 +19,7 @@ CREATE TABLE `geotools_cache` (
   `country` varchar(128) DEFAULT NULL,
   `countryCode` varchar(10) DEFAULT NULL,
   `timezone` varchar(10) DEFAULT NULL,
+  `exceptionMessage` varchar(255) DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`query`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

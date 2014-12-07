@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="GeocodingAugmentation" default="build">
+
+    <target name="build" depends="prepare,composerInstall,phpunit"/>
+
+    <target name="clean" description="Cleanup build artifacts">
+        <delete file="${basedir}/composer.phar"/>
+    </target>
+
+    <target name="prepare" depends="clean" description="Prepare for build">
+        <exec executable="bash">
+            <arg value="-c"/>
+            <arg value="curl -s http://getcomposer.org/installer | php"/>
+        </exec>
+    </target>
+
+    <target name="composerInstall" depends="prepare">
+        <exec executable="php" failonerror="true">
+            <arg value="composer.phar"/>
+            <arg value="install"/>
+            <arg value="-n"/>
+        </exec>
+    </target>
+
+    <target name="initTestEnvironment" depends="composerInstall">
+        <exec executable="php" failonerror="true">
+            <arg value="${basedir}/vendor/keboola/syrup/app/console"/>
+            <arg value="cache:clear"/>
+            <arg value="--env=test"/>
+        </exec>
+        <exec executable="cp" failonerror="true">
+            <arg value="parameters.yml"/>
+            <arg value="vendor/keboola/syrup/app/config"/>
+        </exec>
+        <exec executable="cp" failonerror="true">
+            <arg value="parameters_shared.yml"/>
+            <arg value="vendor/keboola/syrup/app/config"/>
+        </exec>
+    </target>
+
+    <target name="phpunit" description="Run unit tests with PHPUnit">
+        <exec executable="phpunit" failonerror="true">
+            <arg value="--configuration"/>
+            <arg path="${basedir}/phpunit.xml.dist"/>
+        </exec>
+    </target>
+
+</project>

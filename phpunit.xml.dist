@@ -16,6 +16,7 @@
 	</php>
 	<testsuites>
 		<testsuite name="part-1">
+			<file>Tests/UserStorageTest.php</file>
             <file>Tests/Controller/DefaultControllerTest.php</file>
 		</testsuite>
 	</testsuites>
