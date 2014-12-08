@@ -105,19 +105,21 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			while (($line = fgetcsv($handle)) !== false) {
 				$lines[] = $line;
 
+				// Run geocoding every 50 lines
 				if (count($lines) >= $countInBatch) {
 					$this->geocodeBatch($forwardGeocoding, $lines);
+					$this->eventLogger->log(sprintf('Processed %d queries', $batchNumber * $countInBatch));
 
 					$lines = array();
-					$this->eventLogger->log(sprintf('Processed %d queries', $batchNumber * $countInBatch));
 					$batchNumber++;
 				}
 
 			}
 		}
 		if (count($lines)) {
+			// Run the rest of lines above the highest multiple of 50
 			$this->geocodeBatch($forwardGeocoding, $lines);
-			$this->eventLogger->log(sprintf('Processed %d queries', $batchNumber * $countInBatch));
+			$this->eventLogger->log(sprintf('Processed %d queries', (($batchNumber - 1) * $countInBatch) + count($lines)));
 		}
 		fclose($handle);
 
@@ -150,7 +152,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				}
 			}
 		}
-
+print_r($queries);
 		$cache = $this->sharedStorage->get($queriesToCheck);
 
 		// Get from cache
@@ -159,9 +161,9 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			$flatQuery = is_object($query)? sprintf('%s, %s', $query->getLatitude(), $query->getLongitude()) : $query;
 			if (!isset($cache[$flatQuery])) {
 				$queriesToGeocode[] = $query;
-			} else {
+			} else {print_r($cache[$flatQuery]);
 				$this->userStorage->save($forwardGeocoding, $cache[$flatQuery]);
-				if (($forwardGeocoding && !$cache[$flatQuery]['latitude'] && !$cache[$flatQuery]['longitude'])
+				if (($forwardGeocoding && $cache[$flatQuery]['latitude'] == 0 && $cache[$flatQuery]['longitude'] == 0)
 					|| (!$forwardGeocoding && !$cache[$flatQuery]['country'])) {
 					$this->eventLogger->log(sprintf("No result for location '%s' found", $flatQuery), array(), null, EventLogger::TYPE_WARN);
 				}
@@ -181,7 +183,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				$this->sharedStorage->save($data);
 				$this->userStorage->save($forwardGeocoding, $data);
 
-				if ($forwardGeocoding ? !$g->getLatitude() && !$g->getLongitude() : !$g->getCountry()) {
+				if ($forwardGeocoding ? $g->getLatitude() == 0 && $g->getLongitude() == 0 : !$g->getCountry()) {
 					$this->eventLogger->log(sprintf("No result for location '%s' found", $g->getQuery()), array(), null, EventLogger::TYPE_WARN);
 				}
 			}
