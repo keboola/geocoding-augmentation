@@ -152,7 +152,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				}
 			}
 		}
-print_r($queries);
+
 		$cache = $this->sharedStorage->get($queriesToCheck);
 
 		// Get from cache
@@ -161,7 +161,7 @@ print_r($queries);
 			$flatQuery = is_object($query)? sprintf('%s, %s', $query->getLatitude(), $query->getLongitude()) : $query;
 			if (!isset($cache[$flatQuery])) {
 				$queriesToGeocode[] = $query;
-			} else {print_r($cache[$flatQuery]);
+			} else {
 				$this->userStorage->save($forwardGeocoding, $cache[$flatQuery]);
 				if (($forwardGeocoding && $cache[$flatQuery]['latitude'] == 0 && $cache[$flatQuery]['longitude'] == 0)
 					|| (!$forwardGeocoding && !$cache[$flatQuery]['country'])) {
