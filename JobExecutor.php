@@ -93,13 +93,21 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 		$this->eventLogger = new EventLogger($this->storageApi, $job->getId());
 		$this->userStorage = new UserStorage($this->storageApi, $this->temp);
 
+		$userTableParams = $forwardGeocoding? $params['location'] : array($params['latitude'], $params['longitude']);
+		$dataFile = $this->userStorage->getData($params['tableId'], $userTableParams);
+
+		$this->geocode($forwardGeocoding, $dataFile);
+
+		$this->userStorage->uploadData();
+	}
+
+	public function geocode($forwardGeocoding, $dataFile)
+	{
 		// Download file with data column to disk and read line-by-line
 		// Query Geocoding API by 50 queries
 		$batchNumber = 1;
 		$countInBatch = 50;
 		$lines = array();
-		$userTableParams = $forwardGeocoding? $params['location'] : array($params['latitude'], $params['longitude']);
-		$dataFile = $this->userStorage->getData($params['tableId'], $userTableParams);
 		$handle = fopen($dataFile, "r");
 		if ($handle) {
 			while (($line = fgetcsv($handle)) !== false) {
@@ -122,8 +130,6 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			$this->eventLogger->log(sprintf('Processed %d queries', (($batchNumber - 1) * $countInBatch) + count($lines)));
 		}
 		fclose($handle);
-
-		$this->userStorage->uploadData();
 	}
 
 

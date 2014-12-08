@@ -60,7 +60,6 @@ class UserStorageTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 			array("35.333","57.333"),
 			array("36.234","56.443")), $data2);
 
-
 	}
 
 }
