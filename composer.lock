@@ -1417,16 +1417,16 @@
         },
         {
             "name": "keboola/syrup",
-            "version": "1.7.9",
+            "version": "1.7.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/keboola/syrup.git",
-                "reference": "333ce8aafea5a2249d1d6d4dacb70c44e13615a5"
+                "reference": "de454edf9d3c0434bab065a7095a09c1c3a7a517"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/keboola/syrup/zipball/333ce8aafea5a2249d1d6d4dacb70c44e13615a5",
-                "reference": "333ce8aafea5a2249d1d6d4dacb70c44e13615a5",
+                "url": "https://api.github.com/repos/keboola/syrup/zipball/de454edf9d3c0434bab065a7095a09c1c3a7a517",
+                "reference": "de454edf9d3c0434bab065a7095a09c1c3a7a517",
                 "shasum": ""
             },
             "require": {
@@ -1457,7 +1457,7 @@
                 "MIT"
             ],
             "description": "Syrup - Concentrated extract(or)s",
-            "time": "2014-12-08 10:09:35"
+            "time": "2014-12-10 14:58:47"
         },
         {
             "name": "kriswallsmith/assetic",
@@ -2351,17 +2351,17 @@
         },
         {
             "name": "syrup/component-bundle",
-            "version": "1.10.5",
+            "version": "1.10.8",
             "target-dir": "Syrup/ComponentBundle",
             "source": {
                 "type": "git",
                 "url": "https://github.com/keboola/syrup-component-bundle.git",
-                "reference": "b581d3e2cba8fffd9b6be83d577d30e7a23f3384"
+                "reference": "b7495d7d63f49f712729662b1bb0d6c1f4ebe219"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/keboola/syrup-component-bundle/zipball/b581d3e2cba8fffd9b6be83d577d30e7a23f3384",
-                "reference": "b581d3e2cba8fffd9b6be83d577d30e7a23f3384",
+                "url": "https://api.github.com/repos/keboola/syrup-component-bundle/zipball/b7495d7d63f49f712729662b1bb0d6c1f4ebe219",
+                "reference": "b7495d7d63f49f712729662b1bb0d6c1f4ebe219",
                 "shasum": ""
             },
             "require": {
@@ -2401,7 +2401,7 @@
                 }
             ],
             "description": "Syrup ComponentBundle",
-            "time": "2014-12-02 11:37:03"
+            "time": "2014-12-09 12:04:21"
         },
         {
             "name": "twig/twig",
