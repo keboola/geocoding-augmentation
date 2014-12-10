@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `geocoding_cache`;
 CREATE TABLE `geocoding_cache` (
   `query` varchar(128) NOT NULL,
   `providerName` varchar(20) NOT NULL DEFAULT '',

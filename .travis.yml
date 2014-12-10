@@ -1,0 +1,16 @@
+language: php
+
+php:
+  - "5.6"
+  - "5.5"
+  - "5.4"
+
+services:
+  - mysql
+
+before_script:
+  - mysql -e 'create database ag_geocoding_test;'
+  - composer install -n
+  - php vendor/keboola/syrup/app/console cache:clear --env=test
+  - cp parameters.yml vendor/keboola/syrup/app/config/
+  - cp parameters_shared.yml vendor/keboola/syrup/app/config/

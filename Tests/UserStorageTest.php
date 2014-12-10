@@ -12,37 +12,16 @@ use Keboola\GeocodingBundle\Service\UserStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Table;
 
-class UserStorageTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
+class UserStorageTest extends AbstractTest
 {
 
 	public function testDownload()
 	{
-		$container = static::createClient()->getContainer();
-		$storageApiClient = new StorageApiClient(array(
-			'token' => $container->getParameter('storage_api.test.token'),
-			'url' => $container->getParameter('storage_api.test.url'))
-		);
-		$tableId = 'out.c-main.' . uniqid();
+		$temp = new \Syrup\ComponentBundle\Filesystem\Temp('ag-geocoding');
+		$userStorage = new UserStorage($this->storageApiClient, $temp);
 
-		// Prepare data table
-		$t = new Table($storageApiClient, $tableId);
-		$t->setHeader(array('addr', 'lat', 'lon'));
-		$t->setFromArray(array(
-			array('Praha', '35.235', '57.453'),
-			array('Brno', '36.234', '56.443'),
-			array('Ostrava', '35.235', '57.453'),
-			array('Praha', '35.235', '57.553'),
-			array('Plzeň', '35.333', '57.333'),
-			array('Brno', '35.235', '57.453')
-		));
-		$t->save();
-
-		$userStorage = new UserStorage($storageApiClient, $container->get('syrup.temp'));
-
-		$csv1 = new CsvFile($userStorage->getData($tableId, 'addr'));
-		$csv2 = new CsvFile($userStorage->getData($tableId, array('lat', 'lon')));
-
-		$storageApiClient->dropTable($tableId);
+		$csv1 = new CsvFile($userStorage->getData($this->tableId, 'addr'));
+		$csv2 = new CsvFile($userStorage->getData($this->tableId, array('lat', 'lon')));
 
 		$data1 = array();
 		foreach ($csv1 as $r) {
@@ -59,7 +38,6 @@ class UserStorageTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 			array("35.235","57.553"),
 			array("35.333","57.333"),
 			array("36.234","56.443")), $data2);
-
 	}
 
 }
