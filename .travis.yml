@@ -8,8 +8,6 @@ services:
 before_script:
 - mysql -e 'create database ag_geocoding_test;'
 - composer install -n --no-scripts
-- cp parameters.yml vendor/keboola/syrup/app/config/
-- cp parameters_shared.yml vendor/keboola/syrup/app/config/
 notifications:
   slack:
     secure: ZwEGJBi9LNocVYWbDMu5llfTxQ9UHQCbAEiGr8RsXFgALRXvYQ4Ymw2GfLGMdFAaZ55SSeTsDHa4btJ2LFWMi+r+anDN4oWDxfjtY2pdpB7lQh19PhjSKYGz59e7vX8x3iPmygMbcPFW6Bee9n8yVW9/Md6JxgBIRcoVratFyks=
