@@ -20,9 +20,9 @@ class SharedStorage
 	protected $db;
 	const TABLE_NAME = 'geocoding_cache';
 
-	public function __construct(\Doctrine\Bundle\DoctrineBundle\Registry $doctrine)
+	public function __construct(\Doctrine\DBAL\Connection $db)
 	{
-		$this->db = $doctrine->getConnection();
+		$this->db = $db;
 	}
 
 	public function get($queries)

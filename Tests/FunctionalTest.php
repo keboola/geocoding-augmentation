@@ -7,61 +7,49 @@
 
 namespace Keboola\GeocodingBundle\Tests;
 
-use Keboola\Csv\CsvFile;
 use Keboola\GeocodingBundle\JobExecutor;
+use Keboola\GeocodingBundle\Service\SharedStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Table;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Monolog\Handler\NullHandler;
 use Syrup\ComponentBundle\Job\Metadata\Job;
 
-class FunctionalTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
+class FunctionalTest extends AbstractTest
 {
 	/**
-	 * @var StorageApiClient
+	 * @var JobExecutor
 	 */
-	private $storageApiClient;
-	private $tableId;
-	/**
-	 * @var ContainerInterface
-	 */
-	private $container;
+	private $jobExecutor;
 
 	public function setUp()
 	{
-		$this->container = static::createClient()->getContainer();
-		$this->storageApiClient = new StorageApiClient(array(
-			'token' => $this->container->getParameter('storage_api.test.token'),
-			'url' => $this->container->getParameter('storage_api.test.url'))
-		);
+		parent::setUp();
 
-		$this->tableId = 'out.c-main.' . uniqid();
-
-		// Prepare data table
-		$t = new Table($this->storageApiClient, $this->tableId);
-		$t->setHeader(array('addr', 'lat', 'lon'));
-		$t->setFromArray(array(
-			array('Praha', '35.235', '57.453'),
-			array('Brno', '36.234', '56.443'),
-			array('Ostrava', '35.235', '57.453'),
-			array('Praha', '35.235', '57.553'),
-			array('Plzeň', '35.333', '57.333'),
-			array('Brno', '35.235', '57.453')
+		$db = \Doctrine\DBAL\DriverManager::getConnection(array(
+			'driver' => 'pdo_mysql',
+			'host' => DB_HOST,
+			'dbname' => DB_NAME,
+			'user' => DB_USER,
+			'password' => DB_PASSWORD,
 		));
-		$t->save();
 
-		if ($this->storageApiClient->tableExists('in.c-ag-geocoding.coordinates')) {
-			$this->storageApiClient->dropTable('in.c-ag-geocoding.coordinates');
-		}
-	}
+		$stmt = $db->prepare(file_get_contents(__DIR__ . '/../db.sql'));
+		$stmt->execute();
 
-	public function tearDown()
-	{
-		$this->storageApiClient->dropTable($this->tableId);
+		$sharedStorage = new SharedStorage($db);
+
+		$logger = new \Monolog\Logger('null');
+		$logger->pushHandler(new NullHandler());
+
+		$temp = new \Syrup\ComponentBundle\Filesystem\Temp('ag-geocoding');
+
+		$this->jobExecutor = new JobExecutor($sharedStorage, $temp, $logger, GOOGLE_KEY, MAPQUEST_KEY);
+		$this->jobExecutor->setStorageApi($this->storageApiClient);
 	}
 
 	public function testForward()
 	{
-		$job = new Job(array(
+		$this->jobExecutor->execute(new Job(array(
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
@@ -71,17 +59,7 @@ class FunctionalTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 				'tableId' => $this->tableId,
 				'location' => 'addr'
 			)
-		));
-
-		$jobExecutor = new JobExecutor(
-			$this->container->get('ag_geocoding.shared_storage'),
-			$this->container->get('syrup.temp'),
-			$this->container->get('logger'),
-			$this->container->getParameter('google_key'),
-			$this->container->getParameter('mapquest_key')
-		);
-		$jobExecutor->setStorageApi($this->storageApiClient);
-		$jobExecutor->execute($job);
+		)));
 
 		$this->assertTrue($this->storageApiClient->tableExists('in.c-ag-geocoding.coordinates'));
 		$export = $this->storageApiClient->exportTable('in.c-ag-geocoding.coordinates');
@@ -91,7 +69,7 @@ class FunctionalTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 
 	public function testReverse()
 	{
-		$job = new Job(array(
+		$this->jobExecutor->execute(new Job(array(
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
@@ -102,17 +80,7 @@ class FunctionalTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 				'latitude' => 'lat',
 				'longitude' => 'lon'
 			)
-		));
-
-		$jobExecutor = new JobExecutor(
-			$this->container->get('ag_geocoding.shared_storage'),
-			$this->container->get('syrup.temp'),
-			$this->container->get('logger'),
-			$this->container->getParameter('google_key'),
-			$this->container->getParameter('mapquest_key')
-		);
-		$jobExecutor->setStorageApi($this->storageApiClient);
-		$jobExecutor->execute($job);
+		)));
 
 		$this->assertTrue($this->storageApiClient->tableExists('in.c-ag-geocoding.locations'));
 		$export = $this->storageApiClient->exportTable('in.c-ag-geocoding.locations');

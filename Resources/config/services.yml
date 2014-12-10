@@ -1,6 +1,6 @@
 services:
     ag_geocoding.shared_storage:
-        class: Keboola\GeocodingBundle\Service\SharedStorage
+        class: Keboola\GeocodingBundle\Service\SharedStorageService
         arguments: [@doctrine]
     ag_geocoding.job_executor:
         class: Keboola\GeocodingBundle\JobExecutor

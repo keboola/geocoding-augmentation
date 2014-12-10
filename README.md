@@ -1,4 +1,4 @@
-geocoding-bundle
+geocoding-augmentation
 ================
 
 Geocoding augmentation component for Keboola Connection. 
