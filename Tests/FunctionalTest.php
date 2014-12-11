@@ -5,12 +5,11 @@
  * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle\Tests;
+namespace Keboola\GeocodingAugmentation\Tests;
 
-use Keboola\GeocodingBundle\JobExecutor;
-use Keboola\GeocodingBundle\Service\SharedStorage;
+use Keboola\GeocodingAugmentation\JobExecutor;
+use Keboola\GeocodingAugmentation\Service\SharedStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
-use Keboola\StorageApi\Table;
 use Monolog\Handler\NullHandler;
 use Syrup\ComponentBundle\Job\Metadata\Job;
 

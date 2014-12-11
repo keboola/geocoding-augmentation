@@ -14,4 +14,4 @@ parameters:
 
     components:
         ag-geocoding:
-            bundle: "Keboola\\GeocodingBundle\\KeboolaGeocodingBundle"
+            bundle: "Keboola\\GeocodingAugmentation\\KeboolaGeocodingAugmentation"

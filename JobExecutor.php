@@ -1,12 +1,11 @@
 <?php
 /**
- * Created by IntelliJ IDEA.
- * User: JakubM
- * Date: 04.09.14
- * Time: 15:19
+ * @package geocoding-bundle
+ * @copyright 2014 Keboola
+ * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle;
+namespace Keboola\GeocodingAugmentation;
 
 use Geocoder\Geocoder;
 use Geocoder\Provider\ChainProvider;
@@ -14,10 +13,11 @@ use Geocoder\Provider\GoogleMapsProvider;
 use Geocoder\Provider\MapQuestProvider;
 use Geocoder\Provider\NominatimProvider;
 use Geocoder\Provider\YandexProvider;
-use Keboola\GeocodingBundle\Service\EventLogger;
-use Keboola\GeocodingBundle\Service\SharedStorage;
-use Keboola\GeocodingBundle\Service\UserStorage;
-use Keboola\GeocodingBundle\Geocoder\GuzzleAdapter;
+use Keboola\GeocodingAugmentation\Service\EventLogger;
+use Keboola\GeocodingAugmentation\Service\SharedStorage;
+use Keboola\GeocodingAugmentation\Service\SharedStorageService;
+use Keboola\GeocodingAugmentation\Service\UserStorage;
+use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use League\Geotools\Batch\Batch;
 use League\Geotools\Exception\InvalidArgumentException;
 use Monolog\Logger;

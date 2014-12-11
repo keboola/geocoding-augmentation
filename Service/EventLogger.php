@@ -1,12 +1,11 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: JakubM
- * Date: 26.06.14
- * Time: 10:01
+ * @package geocoding-bundle
+ * @copyright 2014 Keboola
+ * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle\Service;
+namespace Keboola\GeocodingAugmentation\Service;
 
 use Keboola\StorageApi\Client as StorageApiClient,
 	Keboola\StorageApi\Event as StorageApiEvent;
