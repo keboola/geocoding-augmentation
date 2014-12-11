@@ -1,12 +1,11 @@
 <?php
 /**
- * Created by IntelliJ IDEA.
- * User: JakubM
- * Date: 08.09.14
- * Time: 13:46
+ * @package geocoding-bundle
+ * @copyright 2014 Keboola
+ * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle\Service;
+namespace Keboola\GeocodingAugmentation\Service;
 
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Client;

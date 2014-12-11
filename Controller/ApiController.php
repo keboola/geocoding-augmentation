@@ -1,6 +1,11 @@
 <?php
+/**
+ * @package geocoding-bundle
+ * @copyright 2014 Keboola
+ * @author Jakub Matejka <jakub@keboola.com>
+ */
 
-namespace Keboola\GeocodingBundle\Controller;
+namespace Keboola\GeocodingAugmentation\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;

@@ -1,18 +1,16 @@
 <?php
 /**
- * Created by IntelliJ IDEA.
- * User: JakubM
- * Date: 08.09.14
- * Time: 13:46
+ * @package geocoding-bundle
+ * @copyright 2014 Keboola
+ * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle\Service;
+namespace Keboola\GeocodingAugmentation\Service;
 
 use Keboola\Csv\CsvFile;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\TableExporter;
-use League\Geotools\Batch\BatchGeocoded;
 use Symfony\Component\Process\Process;
 use Syrup\ComponentBundle\Exception\SyrupComponentException;
 use Syrup\ComponentBundle\Exception\UserException;

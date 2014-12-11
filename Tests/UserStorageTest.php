@@ -5,12 +5,10 @@
  * @author Jakub Matejka <jakub@keboola.com>
  */
 
-namespace Keboola\GeocodingBundle\Tests;
+namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\Csv\CsvFile;
-use Keboola\GeocodingBundle\Service\UserStorage;
-use Keboola\StorageApi\Client as StorageApiClient;
-use Keboola\StorageApi\Table;
+use Keboola\GeocodingAugmentation\Service\UserStorage;
 
 class UserStorageTest extends AbstractTest
 {

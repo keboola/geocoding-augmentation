@@ -1,5 +1,5 @@
 {
-  "name": "keboola/geocoding-bundle",
+  "name": "keboola/geocoding-augmentation",
   "type": "symfony-bundle",
   "description": "Address Geocoding",
   "keywords": [],
@@ -29,10 +29,10 @@
   "minimum-stability": "stable",
   "autoload": {
     "psr-0": {
-      "Keboola\\GeocodingBundle": ""
+      "Keboola\\GeocodingAugmentation": ""
     }
   },
-  "target-dir": "Keboola/GeocodingBundle",
+  "target-dir": "Keboola/GeocodingAugmentation",
   "extra": {
     "symfony-app-dir": "vendor/keboola/syrup/app",
     "symfony-web-dir": "vendor/keboola/syrup/web",
