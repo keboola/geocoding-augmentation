@@ -1,41 +1,46 @@
 {
-  "name": "keboola/geocoding-augmentation",
-  "type": "symfony-bundle",
-  "description": "Address Geocoding",
-  "keywords": [],
-  "authors": [],
-  "repositories": [],
-  "require": {
-    "syrup/component-bundle": "~1.10.2",
-    "league/geotools": "@stable"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "~4.3.1"
-  },
-  "scripts": {
-    "post-install-cmd": [
-      "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
-      "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+    "name": "keboola/geocoding-augmentation",
+    "type": "symfony-bundle",
+    "description": "Keboola Address Geocoding Augmentation",
+    "keywords": ["keboola", "address", "geocoding"],
+    "authors": [
+        {
+            "name": "Jakub Matejka",
+            "email": "jakub@keboola.com"
+        }
     ],
-    "post-update-cmd": [
-      "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
-      "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
-    ]
-  },
-  "minimum-stability": "stable",
-  "autoload": {
-    "psr-0": {
-      "Keboola\\GeocodingAugmentation": ""
+    "repositories": [],
+    "require": {
+        "syrup/component-bundle": "~1.10.2",
+        "league/geotools": "@stable"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.4"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
+            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+        ],
+        "post-update-cmd": [
+            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
+            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+        ]
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-0": {
+            "Keboola\\GeocodingAugmentation": ""
+        }
+    },
+    "target-dir": "Keboola/GeocodingAugmentation",
+    "extra": {
+        "symfony-app-dir": "vendor/keboola/syrup/app",
+        "symfony-web-dir": "vendor/keboola/syrup/web",
+        "syrup-app-name": "ag-geocoding"
     }
-  },
-  "target-dir": "Keboola/GeocodingAugmentation",
-  "extra": {
-    "symfony-app-dir": "vendor/keboola/syrup/app",
-    "symfony-web-dir": "vendor/keboola/syrup/web",
-    "syrup-app-name": "ag-geocoding"
-  }
 }
