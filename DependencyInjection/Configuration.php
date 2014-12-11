@@ -1,6 +1,6 @@
 <?php
 /**
- * @package geocoding-bundle
+ * @package geocoding-augmentation
  * @copyright 2014 Keboola
  * @author Jakub Matejka <jakub@keboola.com>
  */
