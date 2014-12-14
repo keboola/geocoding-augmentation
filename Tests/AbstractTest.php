@@ -10,7 +10,7 @@ namespace Keboola\GeocodingAugmentation\Tests;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Table;
 
-class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
+abstract class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 {
 	/**
 	 * @var StorageApiClient
