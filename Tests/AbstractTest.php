@@ -40,13 +40,11 @@ abstract class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTest
 			foreach ($this->storageApiClient->listTables($this->inBucket) as $table) {
 				$this->storageApiClient->dropTable($table['id']);
 			}
-			$this->storageApiClient->dropBucket($this->inBucket);
 		}
 		if ($this->storageApiClient->bucketExists($this->outBucket)) {
 			foreach ($this->storageApiClient->listTables($this->outBucket) as $table) {
 				$this->storageApiClient->dropTable($table['id']);
 			}
-			$this->storageApiClient->dropBucket($this->outBucket);
 		}
 
 		if (!$this->storageApiClient->bucketExists($this->outBucket)) {
