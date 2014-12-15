@@ -18,8 +18,8 @@ class UserStorageTest extends AbstractTest
 		$temp = new \Syrup\ComponentBundle\Filesystem\Temp('ag-geocoding');
 		$userStorage = new UserStorage($this->storageApiClient, $temp);
 
-		$csv1 = new CsvFile($userStorage->getData($this->tableId, 'addr'));
-		$csv2 = new CsvFile($userStorage->getData($this->tableId, array('lat', 'lon')));
+		$csv1 = new CsvFile($userStorage->getData($this->dataTableId, 'addr'));
+		$csv2 = new CsvFile($userStorage->getData($this->dataTableId, array('lat', 'lon')));
 
 		$data1 = array();
 		foreach ($csv1 as $r) {

@@ -55,7 +55,7 @@ class FunctionalTest extends AbstractTest
 			'component' => 'ag-geocoding',
 			'command' => 'geocode',
 			'params' => array(
-				'tableId' => $this->tableId,
+				'tableId' => $this->dataTableId,
 				'location' => 'addr'
 			)
 		)));
@@ -75,7 +75,7 @@ class FunctionalTest extends AbstractTest
 			'component' => 'ag-geocoding',
 			'command' => 'reverse',
 			'params' => array(
-				'tableId' => $this->tableId,
+				'tableId' => $this->dataTableId,
 				'latitude' => 'lat',
 				'longitude' => 'lon'
 			)

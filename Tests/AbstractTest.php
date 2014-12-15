@@ -12,13 +12,14 @@ use Keboola\StorageApi\Table;
 
 abstract class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 {
+	const APP_NAME = 'ag_geocoding';
+
 	/**
 	 * @var StorageApiClient
 	 */
 	protected $storageApiClient;
 
-	protected $bucketName;
-	protected $tableId;
+	protected $dataTableId;
 
 	public function setUp()
 	{
@@ -27,12 +28,28 @@ abstract class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTest
 			'url' => STORAGE_API_URL
 		));
 
-		$this->bucketName = 't' . uniqid();
-		$this->storageApiClient->createBucket($this->bucketName, 'out', 'Test');
-		$this->tableId = 'out.c-' . $this->bucketName . '.' . uniqid();
+		$inBucket = sprintf('in.c-%s', self::APP_NAME);
+		$outBucket = sprintf('out.c-%s', self::APP_NAME);
+
+		// Cleanup
+		if ($this->storageApiClient->bucketExists($inBucket)) {
+			foreach ($this->storageApiClient->listTables($inBucket) as $table) {
+				$this->storageApiClient->dropTable($table['id']);
+			}
+			$this->storageApiClient->dropBucket($inBucket);
+		}
+		if ($this->storageApiClient->bucketExists($outBucket)) {
+			foreach ($this->storageApiClient->listTables($outBucket) as $table) {
+				$this->storageApiClient->dropTable($table['id']);
+			}
+			$this->storageApiClient->dropBucket($outBucket);
+		}
+
+		$this->storageApiClient->createBucket(self::APP_NAME, 'out', 'Test');
+		$this->dataTableId = sprintf('out.c-%s.%s', self::APP_NAME, uniqid());
 
 		// Prepare data table
-		$t = new Table($this->storageApiClient, $this->tableId);
+		$t = new Table($this->storageApiClient, $this->dataTableId);
 		$t->setHeader(array('addr', 'lat', 'lon'));
 		$t->setFromArray(array(
 			array('Praha', '35.235', '57.453'),
@@ -43,16 +60,6 @@ abstract class AbstractTest extends \Symfony\Bundle\FrameworkBundle\Test\WebTest
 			array('Brno', '35.235', '57.453')
 		));
 		$t->save();
-
-		if ($this->storageApiClient->tableExists('in.c-ag-geocoding.coordinates')) {
-			$this->storageApiClient->dropTable('in.c-ag-geocoding.coordinates');
-		}
-	}
-
-	public function tearDown()
-	{
-		$this->storageApiClient->dropTable($this->tableId);
-		$this->storageApiClient->dropBucket('out.c-' . $this->bucketName);
 	}
 
 }
