@@ -15,7 +15,7 @@ class UserStorageTest extends AbstractTest
 
 	public function testDownload()
 	{
-		$temp = new \Syrup\ComponentBundle\Filesystem\Temp('ag-geocoding');
+		$temp = new \Syrup\ComponentBundle\Filesystem\Temp(self::APP_NAME);
 		$userStorage = new UserStorage($this->storageApiClient, $temp);
 
 		$csv1 = new CsvFile($userStorage->getData($this->dataTableId, 'addr'));

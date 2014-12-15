@@ -9,6 +9,7 @@ namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\GeocodingAugmentation\JobExecutor;
 use Keboola\GeocodingAugmentation\Service\SharedStorage;
+use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Monolog\Handler\NullHandler;
 use Syrup\ComponentBundle\Job\Metadata\Job;
@@ -40,7 +41,7 @@ class FunctionalTest extends AbstractTest
 		$logger = new \Monolog\Logger('null');
 		$logger->pushHandler(new NullHandler());
 
-		$temp = new \Syrup\ComponentBundle\Filesystem\Temp('ag-geocoding');
+		$temp = new \Syrup\ComponentBundle\Filesystem\Temp(self::APP_NAME);
 
 		$this->jobExecutor = new JobExecutor($sharedStorage, $temp, $logger, GOOGLE_KEY, MAPQUEST_KEY);
 		$this->jobExecutor->setStorageApi($this->storageApiClient);
@@ -52,7 +53,7 @@ class FunctionalTest extends AbstractTest
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
-			'component' => 'ag-geocoding',
+			'component' => self::APP_NAME,
 			'command' => 'geocode',
 			'params' => array(
 				'tableId' => $this->dataTableId,
@@ -60,8 +61,8 @@ class FunctionalTest extends AbstractTest
 			)
 		)));
 
-		$this->assertTrue($this->storageApiClient->tableExists('in.c-ag-geocoding.coordinates'));
-		$export = $this->storageApiClient->exportTable('in.c-ag-geocoding.coordinates');
+		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, UserStorage::COORDINATES_TABLE_NAME)));
+		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, UserStorage::COORDINATES_TABLE_NAME));
 		$csv = StorageApiClient::parseCsv($export, true);
 		$this->assertEquals(4, count($csv));
 	}
@@ -72,7 +73,7 @@ class FunctionalTest extends AbstractTest
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
-			'component' => 'ag-geocoding',
+			'component' => self::APP_NAME,
 			'command' => 'reverse',
 			'params' => array(
 				'tableId' => $this->dataTableId,
@@ -81,8 +82,8 @@ class FunctionalTest extends AbstractTest
 			)
 		)));
 
-		$this->assertTrue($this->storageApiClient->tableExists('in.c-ag-geocoding.locations'));
-		$export = $this->storageApiClient->exportTable('in.c-ag-geocoding.locations');
+		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, UserStorage::LOCATIONS_TABLE_NAME)));
+		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, UserStorage::LOCATIONS_TABLE_NAME));
 		$csv = StorageApiClient::parseCsv($export, true);
 		$this->assertEquals(4, count($csv));
 	}
