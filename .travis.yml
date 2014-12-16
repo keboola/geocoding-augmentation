@@ -10,7 +10,7 @@ services:
   - mysql
 
 before_script:
-  - mysql -e 'create database ag_forecastio_test;'
+  - mysql -e 'create database ag_geocoding_test;'
   - composer install -n --no-scripts
 
 notifications:
