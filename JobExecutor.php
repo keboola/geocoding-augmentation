@@ -32,10 +32,6 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	 */
 	protected $temp;
 	/**
-	 * @var \Monolog\Logger
-	 */
-	protected $logger;
-	/**
 	 * @var UserStorage
 	 */
 	protected $userStorage;
@@ -53,7 +49,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	protected $sharedStorage;
 
 
-	public function __construct(SharedStorage $sharedStorage, Temp $temp, Logger $logger, $googleApiKey, $mapQuestKey)
+	public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey, $mapQuestKey)
 	{
 		$adapter = new GuzzleAdapter();
 		$geocoder = new Geocoder();
@@ -67,7 +63,6 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 		$this->geotoolsBatch = $geotools->batch($geocoder);
 
 		$this->temp = $temp;
-		$this->logger = $logger;
 		$this->sharedStorage = $sharedStorage;
 	}
 

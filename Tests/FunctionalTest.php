@@ -38,12 +38,9 @@ class FunctionalTest extends AbstractTest
 
 		$sharedStorage = new SharedStorage($db);
 
-		$logger = new \Monolog\Logger('null');
-		$logger->pushHandler(new NullHandler());
-
 		$temp = new \Syrup\ComponentBundle\Filesystem\Temp(self::APP_NAME);
 
-		$this->jobExecutor = new JobExecutor($sharedStorage, $temp, $logger, GOOGLE_KEY, MAPQUEST_KEY);
+		$this->jobExecutor = new JobExecutor($sharedStorage, $temp, GOOGLE_KEY, MAPQUEST_KEY);
 		$this->jobExecutor->setStorageApi($this->storageApiClient);
 	}
 

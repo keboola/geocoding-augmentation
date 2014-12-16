@@ -4,4 +4,4 @@ services:
         arguments: [@doctrine.dbal.default_connection]
     ag_geocoding.job_executor:
         class: Keboola\GeocodingAugmentation\JobExecutor
-        arguments: [@ag_geocoding.shared_storage, @syrup.temp, @logger, %google_key%, %mapquest_key%]
+        arguments: [@ag_geocoding.shared_storage, @syrup.temp, %google_key%, %mapquest_key%]
