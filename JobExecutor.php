@@ -8,19 +8,17 @@
 namespace Keboola\GeocodingAugmentation;
 
 use Geocoder\Geocoder;
-use Geocoder\Provider\ChainProvider;
 use Geocoder\Provider\GoogleMapsProvider;
 use Geocoder\Provider\MapQuestProvider;
 use Geocoder\Provider\NominatimProvider;
 use Geocoder\Provider\YandexProvider;
 use Keboola\GeocodingAugmentation\Service\EventLogger;
 use Keboola\GeocodingAugmentation\Service\SharedStorage;
-use Keboola\GeocodingAugmentation\Service\SharedStorageService;
 use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
+use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
 use League\Geotools\Batch\Batch;
 use League\Geotools\Exception\InvalidArgumentException;
-use Monolog\Logger;
 use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
 use Syrup\ComponentBundle\Job\Metadata\Job;

@@ -708,16 +708,16 @@
         },
         {
             "name": "doctrine/orm",
-            "version": "v2.4.6",
+            "version": "v2.4.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/doctrine2.git",
-                "reference": "bebacf79d8d4dae9168f0f9bc6811e6c2cb6a4d9"
+                "reference": "2bc4ff3cab2ae297bcd05f2e619d42e6a7ca9e68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/doctrine2/zipball/bebacf79d8d4dae9168f0f9bc6811e6c2cb6a4d9",
-                "reference": "bebacf79d8d4dae9168f0f9bc6811e6c2cb6a4d9",
+                "url": "https://api.github.com/repos/doctrine/doctrine2/zipball/2bc4ff3cab2ae297bcd05f2e619d42e6a7ca9e68",
+                "reference": "2bc4ff3cab2ae297bcd05f2e619d42e6a7ca9e68",
                 "shasum": ""
             },
             "require": {
@@ -777,7 +777,7 @@
                 "database",
                 "orm"
             ],
-            "time": "2014-10-06 13:22:50"
+            "time": "2014-12-16 13:45:01"
         },
         {
             "name": "elasticsearch/elasticsearch",
@@ -1417,16 +1417,16 @@
         },
         {
             "name": "keboola/syrup",
-            "version": "1.7.10",
+            "version": "1.7.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/keboola/syrup.git",
-                "reference": "de454edf9d3c0434bab065a7095a09c1c3a7a517"
+                "reference": "edea12169fcae7ca9d3702ade3c7a84982dddb6d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/keboola/syrup/zipball/de454edf9d3c0434bab065a7095a09c1c3a7a517",
-                "reference": "de454edf9d3c0434bab065a7095a09c1c3a7a517",
+                "url": "https://api.github.com/repos/keboola/syrup/zipball/edea12169fcae7ca9d3702ade3c7a84982dddb6d",
+                "reference": "edea12169fcae7ca9d3702ade3c7a84982dddb6d",
                 "shasum": ""
             },
             "require": {
@@ -1457,7 +1457,7 @@
                 "MIT"
             ],
             "description": "Syrup - Concentrated extract(or)s",
-            "time": "2014-12-10 14:58:47"
+            "time": "2014-12-16 18:00:39"
         },
         {
             "name": "kriswallsmith/assetic",
@@ -1805,17 +1805,17 @@
         },
         {
             "name": "sensio/distribution-bundle",
-            "version": "v3.0.12",
+            "version": "v3.0.13",
             "target-dir": "Sensio/Bundle/DistributionBundle",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sensiolabs/SensioDistributionBundle.git",
-                "reference": "fcb1b0d52c5b5396228e52e65bc6924e9797ee84"
+                "reference": "a46e422c1135f2efa27b72a94e58852849134420"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sensiolabs/SensioDistributionBundle/zipball/fcb1b0d52c5b5396228e52e65bc6924e9797ee84",
-                "reference": "fcb1b0d52c5b5396228e52e65bc6924e9797ee84",
+                "url": "https://api.github.com/repos/sensiolabs/SensioDistributionBundle/zipball/a46e422c1135f2efa27b72a94e58852849134420",
+                "reference": "a46e422c1135f2efa27b72a94e58852849134420",
                 "shasum": ""
             },
             "require": {
@@ -1854,7 +1854,7 @@
                 "configuration",
                 "distribution"
             ],
-            "time": "2014-12-03 13:51:42"
+            "time": "2014-12-17 06:40:12"
         },
         {
             "name": "sensio/framework-extra-bundle",
