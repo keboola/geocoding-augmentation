@@ -19,6 +19,7 @@ use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
 use League\Geotools\Batch\Batch;
 use League\Geotools\Exception\InvalidArgumentException;
+use League\Geotools\Geotools;
 use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
 use Syrup\ComponentBundle\Job\Metadata\Job;
@@ -38,9 +39,13 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	 */
 	protected $eventLogger;
 	/**
-	 * @var Batch
+	 * @var Geotools
 	 */
-	protected $geotoolsBatch;
+	protected $geotools;
+	/**
+	 * @var Geocoder
+	 */
+	protected $geocoder;
 	/**
 	 * @var SharedStorage
 	 */
@@ -50,15 +55,14 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey, $mapQuestKey)
 	{
 		$adapter = new GuzzleAdapter();
-		$geocoder = new Geocoder();
-		$geocoder->registerProvider(new ChainProvider(array(
+		$this->geocoder = new Geocoder();
+		$this->geocoder->registerProvider(new ChainProvider(array(
 			new GoogleMapsProvider($adapter, null, null, true, $googleApiKey),
 			new MapQuestProvider($adapter, $mapQuestKey),
 			new YandexProvider($adapter),
 			new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
 		)));
-		$geotools = new \League\Geotools\Geotools();
-		$this->geotoolsBatch = $geotools->batch($geocoder);
+		$this->geotools = new Geotools();
 
 		$this->temp = $temp;
 		$this->sharedStorage = $sharedStorage;
@@ -135,7 +139,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				$queries[] = $line[0];
 				$queriesToCheck[] = $line[0];
 			} else {
-				$query = sprintf('%s %s', $line[0], $line[1]);
+				$query = sprintf('%s, %s', (float)$line[0], (float)$line[1]);
 				// Basically analyze validity of coordinate
 				if ($line[0] === null || $line[1] === null || !is_numeric($line[0]) || !is_numeric($line[1])) {
 					$this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
@@ -171,11 +175,14 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 
 		if (count($queriesToGeocode)) {
 			// Query for the rest not in cache
-			$geocoded = $forwardGeocoding
-				? $this->geotoolsBatch->geocode($queriesToGeocode)->parallel()
-				: $this->geotoolsBatch->reverse($queriesToGeocode)->parallel();
+			$batch = $this->geotools->batch($this->geocoder);
 
-			foreach ($geocoded as $g) {
+			if ($forwardGeocoding)
+				$batch->geocode($queriesToGeocode);
+			else
+				$batch->reverse($queriesToGeocode);
+
+			foreach ($batch->parallel() as $g) {
 				/** @var \League\Geotools\Batch\BatchGeocoded $g */
 				$data = $this->sharedStorage->prepareData($g);
 
