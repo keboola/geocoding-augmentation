@@ -30,8 +30,6 @@ class UserStorage
 
 	const BUCKET_NAME = 'ag-geocoding';
 	const BUCKET_ID = 'in.c-ag-geocoding';
-	const COORDINATES_TABLE_NAME = 'coordinates';
-	const LOCATIONS_TABLE_NAME = 'locations';
 
 	public $tables = array(
 		'columns' => array('query', 'provider', 'latitude', 'longitude', 'bounds_south', 'bounds_east', 'bounds_west',
@@ -47,15 +45,13 @@ class UserStorage
 		$this->temp = $temp;
 	}
 
-	public function save($forward, $data)
+	public function save($configId, $data)
 	{
-		$table = $forward? self::COORDINATES_TABLE_NAME : self::LOCATIONS_TABLE_NAME;
-
-		if (!isset($this->files[$table])) {
-			$this->files[$table] = new CsvFile($this->temp->createTmpFile());
-			$this->files[$table]->writeRow($this->tables['columns']);
+		if (!isset($this->files[$configId])) {
+			$this->files[$configId] = new CsvFile($this->temp->createTmpFile());
+			$this->files[$configId]->writeRow($this->tables['columns']);
 		}
-		$this->files[$table]->writeRow($data);
+		$this->files[$configId]->writeRow($data);
 	}
 
 	public function uploadData()

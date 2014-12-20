@@ -8,10 +8,11 @@
 namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\GeocodingAugmentation\JobExecutor;
+use Keboola\GeocodingAugmentation\Service\ConfigurationStorage;
 use Keboola\GeocodingAugmentation\Service\SharedStorage;
 use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
-use Monolog\Handler\NullHandler;
+use Keboola\StorageApi\Table;
 use Syrup\ComponentBundle\Job\Metadata\Job;
 
 class FunctionalTest extends AbstractTest
@@ -46,41 +47,82 @@ class FunctionalTest extends AbstractTest
 
 	public function testForward()
 	{
+		// Cleanup
+		$configId = 'forward';
+		$configTableId = sprintf('%s.%s', ConfigurationStorage::BUCKET_ID, $configId);
+		if ($this->storageApiClient->tableExists($configTableId)) {
+			$this->storageApiClient->dropTable($configTableId);
+		}
+
+		// Init
+		list($bucketStage, $bucketName) = explode('.', ConfigurationStorage::BUCKET_ID);
+		if (!$this->storageApiClient->bucketExists(ConfigurationStorage::BUCKET_ID)) {
+			$this->storageApiClient->createBucket(substr($bucketName, 2), $bucketStage, 'Geocoding config');
+		}
+
+		$t = new Table($this->storageApiClient, $configTableId);
+		$t->setHeader(array('tableId', 'addressCol'));
+		$t->setAttribute('method', 'geocode');
+		$t->setFromArray(array(
+			array($this->dataTableId, 'addr')
+		));
+		$t->save();
+
+		// Test
 		$this->jobExecutor->execute(new Job(array(
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
 			'component' => self::APP_NAME,
-			'command' => 'geocode',
+			'command' => 'run',
 			'params' => array(
-				'tableId' => $this->dataTableId,
-				'location' => 'addr'
+				'config' => $configId
 			)
 		)));
 
-		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, UserStorage::COORDINATES_TABLE_NAME)));
-		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, UserStorage::COORDINATES_TABLE_NAME));
+		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, $configId)));
+		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, $configId));
 		$csv = StorageApiClient::parseCsv($export, true);
 		$this->assertEquals(4, count($csv));
 	}
 
 	public function testReverse()
 	{
+		// Cleanup
+		$configId = 'reverse';
+		$configTableId = sprintf('%s.%s', ConfigurationStorage::BUCKET_ID, $configId);
+		if ($this->storageApiClient->tableExists($configTableId)) {
+			$this->storageApiClient->dropTable($configTableId);
+		}
+
+		// Init
+		list($bucketStage, $bucketName) = explode('.', ConfigurationStorage::BUCKET_ID);
+		if (!$this->storageApiClient->bucketExists(ConfigurationStorage::BUCKET_ID)) {
+			$this->storageApiClient->createBucket(substr($bucketName, 2), $bucketStage, 'Geocoding config');
+		}
+
+		$t = new Table($this->storageApiClient, $configTableId);
+		$t->setHeader(array('tableId', 'latitudeCol', 'longitudeCol'));
+		$t->setAttribute('method', 'reverse');
+		$t->setFromArray(array(
+			array($this->dataTableId, 'lat', 'lon')
+		));
+		$t->save();
+
+		// Test
 		$this->jobExecutor->execute(new Job(array(
 			'id' => uniqid(),
 			'runId' => uniqid(),
 			'token' => $this->storageApiClient->getLogData(),
 			'component' => self::APP_NAME,
-			'command' => 'reverse',
+			'command' => 'run',
 			'params' => array(
-				'tableId' => $this->dataTableId,
-				'latitude' => 'lat',
-				'longitude' => 'lon'
+				'config' => $configId
 			)
 		)));
 
-		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, UserStorage::LOCATIONS_TABLE_NAME)));
-		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, UserStorage::LOCATIONS_TABLE_NAME));
+		$this->assertTrue($this->storageApiClient->tableExists(sprintf('%s.%s', $this->inBucket, $configId)));
+		$export = $this->storageApiClient->exportTable(sprintf('%s.%s', $this->inBucket, $configId));
 		$csv = StorageApiClient::parseCsv($export, true);
 		$this->assertEquals(4, count($csv));
 	}

@@ -12,12 +12,12 @@ use Geocoder\Provider\GoogleMapsProvider;
 use Geocoder\Provider\MapQuestProvider;
 use Geocoder\Provider\NominatimProvider;
 use Geocoder\Provider\YandexProvider;
+use Keboola\GeocodingAugmentation\Service\ConfigurationStorage;
 use Keboola\GeocodingAugmentation\Service\EventLogger;
 use Keboola\GeocodingAugmentation\Service\SharedStorage;
 use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
-use League\Geotools\Batch\Batch;
 use League\Geotools\Exception\InvalidArgumentException;
 use League\Geotools\Geotools;
 use Syrup\ComponentBundle\Exception\UserException;
@@ -70,35 +70,29 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 
 	public function execute(Job $job)
 	{
-		$params = $job->getParams();
-		$forwardGeocoding = $job->getCommand() == 'geocode';
-
-		// Check required params
-		if (!isset($params['tableId'])) {
-			throw new UserException('Parameter tableId is required');
-		}
-		if ($forwardGeocoding &&!isset($params['location'])) {
-			throw new UserException('Parameter location is required');
-		}
-		if (!$forwardGeocoding && !isset($params['latitude'])) {
-			throw new UserException('Parameter latitude is required');
-		}
-		if (!$forwardGeocoding && !isset($params['longitude'])) {
-			throw new UserException('Parameter longitude is required');
-		}
-
+		$configurationStorage = new ConfigurationStorage($this->storageApi);
 		$this->eventLogger = new EventLogger($this->storageApi, $job->getId());
 		$this->userStorage = new UserStorage($this->storageApi, $this->temp);
 
-		$userTableParams = $forwardGeocoding? $params['location'] : array($params['latitude'], $params['longitude']);
-		$dataFile = $this->userStorage->getData($params['tableId'], $userTableParams);
+		$params = $job->getParams();
+		$configIds = isset($params['config'])? array($params['config']) : $configurationStorage->getConfigurationsList();
 
-		$this->geocode($forwardGeocoding, $dataFile);
+		foreach ($configIds as $configId) {
+			$configuration = $configurationStorage->getConfiguration($configId);
+			$forwardGeocoding = $configuration['method'] == ConfigurationStorage::METHOD_GEOCODE;
+
+			foreach ($configuration['tables'] as $configTable) {
+				$userTableParams = $forwardGeocoding? $configTable['addressCol'] : array($configTable['latitudeCol'], $configTable['longitudeCol']);
+				$dataFile = $this->userStorage->getData($configTable['tableId'], $userTableParams);
+
+				$this->geocode($configId, $forwardGeocoding, $dataFile);
+			}
+		}
 
 		$this->userStorage->uploadData();
 	}
 
-	public function geocode($forwardGeocoding, $dataFile)
+	public function geocode($configId, $forwardGeocoding, $dataFile)
 	{
 		// Download file with data column to disk and read line-by-line
 		// Query Geocoding API by 50 queries
@@ -112,7 +106,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 
 				// Run geocoding every 50 lines
 				if (count($lines) >= $countInBatch) {
-					$this->geocodeBatch($forwardGeocoding, $lines);
+					$this->geocodeBatch($configId, $forwardGeocoding, $lines);
 					$this->eventLogger->log(sprintf('Processed %d queries', $batchNumber * $countInBatch));
 
 					$lines = array();
@@ -123,14 +117,14 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 		}
 		if (count($lines)) {
 			// Run the rest of lines above the highest multiple of 50
-			$this->geocodeBatch($forwardGeocoding, $lines);
+			$this->geocodeBatch($configId, $forwardGeocoding, $lines);
 			$this->eventLogger->log(sprintf('Processed %d queries', (($batchNumber - 1) * $countInBatch) + count($lines)));
 		}
 		fclose($handle);
 	}
 
 
-	public function geocodeBatch($forwardGeocoding, $lines)
+	public function geocodeBatch($configId, $forwardGeocoding, $lines)
 	{
 		$queries = array();
 		$queriesToCheck = array();
@@ -143,14 +137,14 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				// Basically analyze validity of coordinate
 				if ($line[0] === null || $line[1] === null || !is_numeric($line[0]) || !is_numeric($line[1])) {
 					$this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
-					$this->userStorage->save(true, array('query' => $query));
+					$this->userStorage->save($configId, array('query' => $query));
 				} else {
 					try {
 						$queries[] = new \League\Geotools\Coordinate\Coordinate(array($line[0], $line[1]));
 						$queriesToCheck[] = $query;
 					} catch (InvalidArgumentException $e) {
 						$this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
-						$this->userStorage->save(true, array('query' => $query));
+						$this->userStorage->save($configId, array('query' => $query));
 					}
 				}
 			}
@@ -165,7 +159,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			if (!isset($cache[$flatQuery])) {
 				$queriesToGeocode[] = $query;
 			} else {
-				$this->userStorage->save($forwardGeocoding, $cache[$flatQuery]);
+				$this->userStorage->save($configId, $cache[$flatQuery]);
 				if (($forwardGeocoding && $cache[$flatQuery]['latitude'] == 0 && $cache[$flatQuery]['longitude'] == 0)
 					|| (!$forwardGeocoding && !$cache[$flatQuery]['country'])) {
 					$this->eventLogger->log(sprintf("No result for location '%s' found", $flatQuery), array(), null, EventLogger::TYPE_WARN);
@@ -187,7 +181,7 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 				$data = $this->sharedStorage->prepareData($g);
 
 				$this->sharedStorage->save($data);
-				$this->userStorage->save($forwardGeocoding, $data);
+				$this->userStorage->save($configId, $data);
 
 				if ($forwardGeocoding ? $g->getLatitude() == 0 && $g->getLongitude() == 0 : !$g->getCountry()) {
 					$this->eventLogger->log(sprintf("No result for location '%s' found", $g->getQuery()), array(), null, EventLogger::TYPE_WARN);

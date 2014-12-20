@@ -60,6 +60,7 @@ class ChainProvider implements ProviderInterface
 			}
 		}
 
+		$this->currentProvider = null;
 		throw new ChainNoResultException(sprintf('No provider could provide the address "%s"', $address), $exceptions);
 	}
 
@@ -81,6 +82,7 @@ class ChainProvider implements ProviderInterface
 			}
 		}
 
+		$this->currentProvider = null;
 		throw new ChainNoResultException(sprintf('No provider could provide the coordinated %s', json_encode($coordinates)), $exceptions);
 	}
 
