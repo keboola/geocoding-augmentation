@@ -34,7 +34,7 @@ class UserStorage
 	public $tables = array(
 		'columns' => array('query', 'provider', 'latitude', 'longitude', 'bounds_south', 'bounds_east', 'bounds_west',
 			'bounds_north', 'streetNumber', 'streetName', 'city', 'zipcode', 'cityDistrict', 'county', 'countyCode',
-			'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage'),
+			'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage', 'timestamp'),
 		'primaryKey' => 'query'
 	);
 
