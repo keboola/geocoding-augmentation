@@ -34,7 +34,7 @@ class UserStorage
 	public $tables = array(
 		'columns' => array('query', 'provider', 'latitude', 'longitude', 'bounds_south', 'bounds_east', 'bounds_west',
 			'bounds_north', 'streetNumber', 'streetName', 'city', 'zipcode', 'cityDistrict', 'county', 'countyCode',
-			'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage', 'timestamp'),
+			'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage'),
 		'primaryKey' => 'query'
 	);
 
@@ -51,6 +51,7 @@ class UserStorage
 			$this->files[$configId] = new CsvFile($this->temp->createTmpFile());
 			$this->files[$configId]->writeRow($this->tables['columns']);
 		}
+		unset($data['timestamp']);
 		$this->files[$configId]->writeRow($data);
 	}
 
