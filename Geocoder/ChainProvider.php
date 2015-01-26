@@ -20,7 +20,7 @@ class ChainProvider implements ProviderInterface
 	 * @var ProviderInterface[]
 	 */
 	private $providers = array();
-	private $currentProvider;
+    private $providersLog = array();
 
 	/**
 	 * Constructor
@@ -50,9 +50,10 @@ class ChainProvider implements ProviderInterface
 		$exceptions = array();
 
 		foreach ($this->providers as $provider) {
-			try {
-				$this->currentProvider = $provider->getName();
-				return $provider->getGeocodedData($address);
+            try {
+                $result = $provider->getGeocodedData($address);
+                $this->providersLog[$address] = $provider->getName();
+                return $result;
 			} catch (InvalidCredentialsException $e) {
 				throw $e;
 			} catch (\Exception $e) {
@@ -60,7 +61,6 @@ class ChainProvider implements ProviderInterface
 			}
 		}
 
-		$this->currentProvider = null;
 		throw new ChainNoResultException(sprintf('No provider could provide the address "%s"', $address), $exceptions);
 	}
 
@@ -72,9 +72,10 @@ class ChainProvider implements ProviderInterface
 		$exceptions = array();
 
 		foreach ($this->providers as $provider) {
-			try {
-				$this->currentProvider = $provider->getName();
-				return $provider->getReversedData($coordinates);
+            try {
+                $result = $provider->getReversedData($coordinates);
+                $this->providersLog[sprintf('%F,%F', $coordinates[0], $coordinates[1])] = $provider->getName();
+                return $result;
 			} catch (InvalidCredentialsException $e) {
 				throw $e;
 			} catch (\Exception $e) {
@@ -82,7 +83,6 @@ class ChainProvider implements ProviderInterface
 			}
 		}
 
-		$this->currentProvider = null;
 		throw new ChainNoResultException(sprintf('No provider could provide the coordinated %s', json_encode($coordinates)), $exceptions);
 	}
 
@@ -103,6 +103,11 @@ class ChainProvider implements ProviderInterface
 	 */
 	public function getName()
 	{
-		return $this->currentProvider;
+		return 'chain';
 	}
+
+    public function getProvidersLog()
+    {
+        return $this->providersLog;
+    }
 }

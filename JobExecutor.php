@@ -20,7 +20,6 @@ use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
 use League\Geotools\Exception\InvalidArgumentException;
 use League\Geotools\Geotools;
-use Syrup\ComponentBundle\Exception\UserException;
 use Syrup\ComponentBundle\Filesystem\Temp;
 use Syrup\ComponentBundle\Job\Metadata\Job;
 
@@ -50,19 +49,23 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 	 * @var SharedStorage
 	 */
 	protected $sharedStorage;
-
+    /**
+     * @var ChainProvider
+     */
+    protected $chainProvider;
 
 	public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey, $mapQuestKey)
 	{
 		$adapter = new GuzzleAdapter();
 		$this->geocoder = new Geocoder();
-		$this->geocoder->registerProvider(new ChainProvider(array(
-			new GoogleMapsProvider($adapter, null, null, true, $googleApiKey),
-			new MapQuestProvider($adapter, $mapQuestKey),
-			new YandexProvider($adapter),
-			new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
-		)));
-		$this->geotools = new Geotools();
+        $this->chainProvider = new ChainProvider(array(
+            new GoogleMapsProvider($adapter, null, null, true, $googleApiKey),
+            new MapQuestProvider($adapter, $mapQuestKey),
+            new YandexProvider($adapter),
+            new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
+        ));
+		$this->geocoder->registerProvider($this->chainProvider);
+        $this->geotools = new Geotools();
 
 		$this->temp = $temp;
 		$this->sharedStorage = $sharedStorage;
@@ -176,8 +179,13 @@ class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
 			else
 				$batch->reverse($queriesToGeocode);
 
-			foreach ($batch->parallel() as $g) {
+            $result = $batch->parallel();
+            $providersLog = $this->chainProvider->getProvidersLog();
+			foreach ($result as $g) {
 				/** @var \League\Geotools\Batch\BatchGeocoded $g */
+                if (isset($providersLog[$g->getQuery()])) {
+                    $g->setProviderName($providersLog[$g->getQuery()]);
+                }
 				$data = $this->sharedStorage->prepareData($g);
 
 				$this->sharedStorage->save($data);
