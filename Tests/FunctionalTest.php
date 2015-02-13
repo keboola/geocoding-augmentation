@@ -10,10 +10,9 @@ namespace Keboola\GeocodingAugmentation\Tests;
 use Keboola\GeocodingAugmentation\JobExecutor;
 use Keboola\GeocodingAugmentation\Service\ConfigurationStorage;
 use Keboola\GeocodingAugmentation\Service\SharedStorage;
-use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Table;
-use Syrup\ComponentBundle\Job\Metadata\Job;
+use Keboola\Syrup\Job\Metadata\Job;
 
 class FunctionalTest extends AbstractTest
 {
@@ -39,7 +38,7 @@ class FunctionalTest extends AbstractTest
 
 		$sharedStorage = new SharedStorage($db);
 
-		$temp = new \Syrup\ComponentBundle\Filesystem\Temp(self::APP_NAME);
+		$temp = new \Keboola\Temp\Temp(self::APP_NAME);
 
 		$this->jobExecutor = new JobExecutor($sharedStorage, $temp, GOOGLE_KEY, MAPQUEST_KEY);
 		$this->jobExecutor->setStorageApi($this->storageApiClient);

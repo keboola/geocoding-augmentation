@@ -11,7 +11,7 @@
     ],
     "repositories": [],
     "require": {
-        "syrup/component-bundle": "~1.10.2",
+        "keboola/syrup": "~2.0",
         "league/geotools": "@stable"
     },
     "require-dev": {
@@ -20,14 +20,14 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
-            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
+            "Keboola\\Syrup\\DeploymentHandler\\ScriptHandler::getParameters",
+            "Keboola\\Syrup\\DeploymentHandler\\ScriptHandler::getSharedParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
         ],
         "post-update-cmd": [
-            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getParameters",
-            "Syrup\\CoreBundle\\DeploymentHandler\\ScriptHandler::getSharedParameters",
+            "Keboola\\Syrup\\DeploymentHandler\\ScriptHandler::getParameters",
+            "Keboola\\Syrup\\DeploymentHandler\\ScriptHandler::getSharedParameters",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
             "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
         ]

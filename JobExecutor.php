@@ -20,13 +20,13 @@ use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
 use League\Geotools\Exception\InvalidArgumentException;
 use League\Geotools\Geotools;
-use Syrup\ComponentBundle\Filesystem\Temp;
-use Syrup\ComponentBundle\Job\Metadata\Job;
+use Keboola\Temp\Temp;
+use Keboola\Syrup\Job\Metadata\Job;
 
-class JobExecutor extends \Syrup\ComponentBundle\Job\Executor
+class JobExecutor extends \Keboola\Syrup\Job\Executor
 {
 	/**
-	 * @var \Syrup\ComponentBundle\Filesystem\Temp
+	 * @var \Keboola\Temp\Temp
 	 */
 	protected $temp;
 	/**

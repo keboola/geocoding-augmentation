@@ -12,9 +12,9 @@ use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\TableExporter;
 use Symfony\Component\Process\Process;
-use Syrup\ComponentBundle\Exception\SyrupComponentException;
-use Syrup\ComponentBundle\Exception\UserException;
-use Syrup\ComponentBundle\Filesystem\Temp;
+use Keboola\Syrup\Exception\SyrupComponentException;
+use Keboola\Syrup\Exception\UserException;
+use Keboola\Temp\Temp;
 
 class UserStorage
 {
@@ -23,7 +23,7 @@ class UserStorage
 	 */
 	protected $storageApiClient;
 	/**
-	 * @var \Syrup\ComponentBundle\Filesystem\Temp
+	 * @var \Keboola\Temp\Temp
 	 */
 	protected $temp;
 	protected $files = array();

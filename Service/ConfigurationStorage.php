@@ -9,7 +9,7 @@ namespace Keboola\GeocodingAugmentation\Service;
 
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\Client;
-use Syrup\ComponentBundle\Exception\SyrupComponentException;
+use Keboola\Syrup\Exception\SyrupComponentException;
 
 class ConfigurationException extends SyrupComponentException
 {
