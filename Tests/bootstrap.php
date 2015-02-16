@@ -6,7 +6,7 @@
  */
 
 if (file_exists(__DIR__ . '/config.php')) {
-	require_once __DIR__ . '/config.php';
+    require_once __DIR__ . '/config.php';
 }
 
 defined('STORAGE_API_URL')
