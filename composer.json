@@ -11,7 +11,7 @@
     ],
     "repositories": [],
     "require": {
-        "keboola/syrup": "~2.0",
+        "keboola/syrup": "~2.3.13",
         "league/geotools": "@stable"
     },
     "require-dev": {

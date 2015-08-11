@@ -64,7 +64,7 @@ class UserStorage
         foreach ($this->files as $name => $file) {
             $tableId = self::BUCKET_ID . "." . $name;
             try {
-                $options = array();
+                $options = array('incremental' => 1);
                 if (!empty($this->tables['primaryKey'])) {
                     $options['primaryKey'] = $this->tables['primaryKey'];
                 }

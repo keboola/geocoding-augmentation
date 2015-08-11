@@ -24,12 +24,12 @@ class SharedStorage
         $this->db = $db;
     }
 
-    public function get($queries)
+    public function get($queries, $provider = null, $locale = null)
     {
         $result = array();
         $query = $this->db->fetchAll(
-            'SELECT * FROM ' . self::TABLE_NAME . ' WHERE query IN (?)',
-            array($queries),
+            'SELECT * FROM ' . self::TABLE_NAME . ' WHERE query IN (?) AND provider=? AND locale=?',
+            array($queries, $provider ? $provider : '-', $locale ? $locale : '-'),
             array(Connection::PARAM_STR_ARRAY)
         );
         foreach ($query as $q) {
@@ -44,14 +44,17 @@ class SharedStorage
             $this->db->insert(self::TABLE_NAME, $data);
         } catch (DBALException $e) {
             // Ignore
+            echo $e->getMessage().PHP_EOL.PHP_EOL;
         }
     }
 
-    public function prepareData(BatchGeocoded $batch)
+    public function prepareData(BatchGeocoded $batch, $provider = null, $locale = null)
     {
         $bounds = $batch->getBounds();
         $data = array(
             'query' => $batch->getQuery(),
+            'provider' => $provider ? $provider : '-',
+            'locale' => $locale ? $locale : '-',
             'providerName' => $batch->getProviderName(),
             'latitude' => $batch->getLatitude(),
             'longitude' => $batch->getLongitude(),

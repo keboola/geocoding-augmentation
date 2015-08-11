@@ -8,9 +8,15 @@
 namespace Keboola\GeocodingAugmentation;
 
 use Geocoder\Geocoder;
+use Geocoder\Provider\BingMapsProvider;
+use Geocoder\Provider\GoogleMapsBusinessProvider;
 use Geocoder\Provider\GoogleMapsProvider;
 use Geocoder\Provider\MapQuestProvider;
 use Geocoder\Provider\NominatimProvider;
+use Geocoder\Provider\OpenCageProvider;
+use Geocoder\Provider\OpenStreetMapProvider;
+use Geocoder\Provider\ProviderInterface;
+use Geocoder\Provider\TomTomProvider;
 use Geocoder\Provider\YandexProvider;
 use Keboola\GeocodingAugmentation\Service\ConfigurationStorage;
 use Keboola\GeocodingAugmentation\Service\EventLogger;
@@ -18,6 +24,8 @@ use Keboola\GeocodingAugmentation\Service\SharedStorage;
 use Keboola\GeocodingAugmentation\Service\UserStorage;
 use Keboola\GeocodingAugmentation\Geocoder\GuzzleAdapter;
 use Keboola\GeocodingAugmentation\Geocoder\ChainProvider;
+use Keboola\Syrup\Exception\UserException;
+use League\Geotools\Coordinate\Coordinate;
 use League\Geotools\Exception\InvalidArgumentException;
 use League\Geotools\Geotools;
 use Keboola\Temp\Temp;
@@ -25,46 +33,26 @@ use Keboola\Syrup\Job\Metadata\Job;
 
 class JobExecutor extends \Keboola\Syrup\Job\Executor
 {
-    /**
-     * @var \Keboola\Temp\Temp
-     */
+    /** @var \Keboola\Temp\Temp */
     protected $temp;
-    /**
-     * @var UserStorage
-     */
+    /** @var UserStorage */
     protected $userStorage;
-    /**
-     * @var EventLogger
-     */
+    /** @var EventLogger */
     protected $eventLogger;
-    /**
-     * @var Geotools
-     */
+    /** @var Geotools */
     protected $geotools;
-    /**
-     * @var Geocoder
-     */
+    /** @var Geocoder */
     protected $geocoder;
-    /**
-     * @var SharedStorage
-     */
+    /** @var SharedStorage */
     protected $sharedStorage;
-    /**
-     * @var ChainProvider
-     */
-    protected $chainProvider;
+    /** @var ProviderInterface */
+    protected $provider;
+    protected $defaultGoogleKey;
 
-    public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey, $mapQuestKey)
+    public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey)
     {
-        $adapter = new GuzzleAdapter();
+        $this->defaultGoogleKey = $googleApiKey;
         $this->geocoder = new Geocoder();
-        $this->chainProvider = new ChainProvider(array(
-            new GoogleMapsProvider($adapter, null, null, true, $googleApiKey),
-            new MapQuestProvider($adapter, $mapQuestKey),
-            new YandexProvider($adapter),
-            new NominatimProvider($adapter, 'http://nominatim.openstreetmap.org'),
-        ));
-        $this->geocoder->registerProvider($this->chainProvider);
         $this->geotools = new Geotools();
 
         $this->temp = $temp;
@@ -83,20 +71,23 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
         foreach ($configIds as $configId) {
             $configuration = $configurationStorage->getConfiguration($configId);
             $forwardGeocoding = $configuration['method'] == ConfigurationStorage::METHOD_GEOCODE;
+            $providerConfig = array_diff_key($configuration, ['method' => '', 'tables' => '']);
 
             foreach ($configuration['tables'] as $configTable) {
                 $userTableParams = $forwardGeocoding? $configTable['addressCol'] : array($configTable['latitudeCol'], $configTable['longitudeCol']);
                 $dataFile = $this->userStorage->getData($configTable['tableId'], $userTableParams);
 
-                $this->geocode($configId, $forwardGeocoding, $dataFile);
+                $this->geocode($configId, $forwardGeocoding, $providerConfig, $dataFile);
             }
         }
 
         $this->userStorage->uploadData();
     }
 
-    public function geocode($configId, $forwardGeocoding, $dataFile)
+    public function geocode($configId, $forwardGeocoding, $providerConfig, $dataFile)
     {
+        $this->setupProvider($providerConfig);
+
         // Download file with data column to disk and read line-by-line
         // Query Geocoding API by 50 queries
         $batchNumber = 1;
@@ -109,7 +100,7 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
 
                 // Run geocoding every 50 lines
                 if (count($lines) >= $countInBatch) {
-                    $this->geocodeBatch($configId, $forwardGeocoding, $lines);
+                    $this->geocodeBatch($configId, $forwardGeocoding, $lines, $providerConfig);
                     $this->eventLogger->log(sprintf('Processed %d queries', $batchNumber * $countInBatch));
 
                     $lines = array();
@@ -120,14 +111,14 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
         }
         if (count($lines)) {
             // Run the rest of lines above the highest multiple of 50
-            $this->geocodeBatch($configId, $forwardGeocoding, $lines);
+            $this->geocodeBatch($configId, $forwardGeocoding, $lines, $providerConfig);
             $this->eventLogger->log(sprintf('Processed %d queries', (($batchNumber - 1) * $countInBatch) + count($lines)));
         }
         fclose($handle);
     }
 
 
-    public function geocodeBatch($configId, $forwardGeocoding, $lines)
+    public function geocodeBatch($configId, $forwardGeocoding, $lines, $providerConfig)
     {
         $queries = array();
         $queriesToCheck = array();
@@ -143,7 +134,7 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                     $this->userStorage->save($configId, array('query' => $query));
                 } else {
                     try {
-                        $queries[] = new \League\Geotools\Coordinate\Coordinate(array($line[0], $line[1]));
+                        $queries[] = new Coordinate(array($line[0], $line[1]));
                         $queriesToCheck[] = $query;
                     } catch (InvalidArgumentException $e) {
                         $this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
@@ -153,12 +144,13 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
             }
         }
 
-        $cache = $this->sharedStorage->get($queriesToCheck);
-
         // Get from cache
+        $provider = isset($providerConfig['provider']) ? $providerConfig['provider'] : null;
+        $locale = isset($providerConfig['locale']) ? $providerConfig['locale'] : null;
+        $cache = $this->sharedStorage->get($queriesToCheck, $provider, $locale);
         $queriesToGeocode = array();
         foreach ($queries as $query) {
-            $flatQuery = is_object($query)? sprintf('%s, %s', $query->getLatitude(), $query->getLongitude()) : $query;
+            $flatQuery = ($query instanceof Coordinate) ? sprintf('%s, %s', $query->getLatitude(), $query->getLongitude()) : $query;
             if (!isset($cache[$flatQuery])) {
                 $queriesToGeocode[] = $query;
             } else {
@@ -181,13 +173,9 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
             }
 
             $result = $batch->parallel();
-            $providersLog = $this->chainProvider->getProvidersLog();
             foreach ($result as $g) {
                 /** @var \League\Geotools\Batch\BatchGeocoded $g */
-                if (isset($providersLog[$g->getQuery()])) {
-                    $g->setProviderName($providersLog[$g->getQuery()]);
-                }
-                $data = $this->sharedStorage->prepareData($g);
+                $data = $this->sharedStorage->prepareData($g, $provider, $locale);
 
                 $this->sharedStorage->save($data);
                 $this->userStorage->save($configId, $data);
@@ -196,6 +184,65 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                     $this->eventLogger->log(sprintf("No result for location '%s' found", $g->getQuery()), array(), null, EventLogger::TYPE_WARN);
                 }
             }
+
         }
+    }
+    
+    public function setupProvider($config)
+    {
+        $httpAdapter = new GuzzleAdapter();
+        $locale = isset($config['locale']) ? $config['locale'] : 'en';
+        if (isset($config['provider'])) {
+            if (in_array($config['provider'], ['google_maps', 'bing_maps', 'map_quest', 'tomtom', 'opencage'])) {
+                if (!isset($config['apiKey'])) {
+                    throw new UserException("Provider {$config['provider']} needs 'apiKey' attribute configured");
+                }
+            }
+            switch ($config['provider']) {
+                case 'google_maps':
+                    $this->provider = new GoogleMapsProvider($httpAdapter, $locale, null, true, $config['apiKey']);
+                    break;
+                case 'google_maps_business':
+                    if (!isset($config['clientId'])) {
+                        throw new UserException("Provider {$config['provider']} needs 'clientId' attribute configured");
+                    }
+                    if (!isset($config['privateKey'])) {
+                        throw new UserException("Provider {$config['provider']} needs 'privateKey' attribute configured");
+                    }
+                    $this->provider = new GoogleMapsBusinessProvider($httpAdapter, $config['clientId'], $config['privateKey'], $locale, null, true);
+                    break;
+                case 'bing_maps':
+                    $this->provider = new BingMapsProvider($httpAdapter, $config['apiKey'], $locale);
+                    break;
+                case 'yandex':
+                    $this->provider = new YandexProvider($httpAdapter, $locale);
+                    break;
+                case 'map_quest':
+                    $this->provider = new MapQuestProvider($httpAdapter, $config['apiKey'], $locale);
+                    break;
+                case 'tomtom':
+                    $this->provider = new TomTomProvider($httpAdapter, $config['apiKey'], $locale);
+                    break;
+                case 'opencage':
+                    $this->provider = new OpenCageProvider($httpAdapter, $config['apiKey'], true, $locale);
+                    break;
+                case 'openstreetmap':
+                    $this->provider = new OpenStreetMapProvider($httpAdapter, $locale);
+                    break;
+                default:
+                    throw new UserException("Unknown configured provider {$config['provider']}");
+            }
+        }
+
+        // @TODO Fallback to default
+        if (!$this->provider) {
+            $this->provider = new ChainProvider(array(
+                new GoogleMapsProvider($httpAdapter, $locale, null, true, $this->defaultGoogleKey),
+                new YandexProvider($httpAdapter, $locale),
+                new NominatimProvider($httpAdapter, 'http://nominatim.openstreetmap.org', $locale),
+            ));
+        }
+
+        $this->geocoder->registerProvider($this->provider);
     }
 }

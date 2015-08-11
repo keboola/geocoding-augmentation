@@ -53,16 +53,12 @@ class ConfigurationStorage
         $csv = $this->storageApiClient->exportTable($configTableId);
         $table = StorageApiClient::parseCsv($csv, true);
 
-        $method = null;
+        $attrs = [];
         $tableInfo = $this->storageApiClient->getTable($configTableId);
         foreach ($tableInfo['attributes'] as $attr) {
-            switch ($attr['name']) {
-                case 'method':
-                    $method = $attr['value'];
-                    break;
-            }
+            $attrs[$attr['name']] = $attr['value'];
         }
-        if (!$method || !in_array($method, array(self::METHOD_GEOCODE, self::METHOD_REVERSE))) {
+        if (!isset($attrs['method']) || !in_array($attrs['method'], array(self::METHOD_GEOCODE, self::METHOD_REVERSE))) {
             throw new ConfigurationException(sprintf(
                 "Configuration table '%s' must have attribute 'method' with value '%s' or '%s'",
                 $configTableId,
@@ -75,7 +71,7 @@ class ConfigurationStorage
             throw new ConfigurationException(sprintf('Configuration table %s is empty', $configTableId));
         }
 
-        if ($method == self::METHOD_GEOCODE) {
+        if ($attrs['method'] == self::METHOD_GEOCODE) {
             if (!isset($table[0]['tableId']) || !isset($table[0]['addressCol'])) {
                 throw new ConfigurationException(sprintf("Configuration table '%s' should contain columns 'tableId,addressCol'", $configTableId));
             }
@@ -85,10 +81,8 @@ class ConfigurationStorage
             }
         }
 
-        $result = array(
-            'method' => $method,
-            'tables' => array()
-        );
+        $result = $attrs;
+        $result['tables'] = array();
         foreach ($table as $t) {
             try {
                 if (!$this->storageApiClient->tableExists($t['tableId'])) {
@@ -103,7 +97,7 @@ class ConfigurationStorage
             }
             $tableInfo = $this->storageApiClient->getTable($t['tableId']);
 
-            if ($method == self::METHOD_GEOCODE) {
+            if ($attrs['method'] == self::METHOD_GEOCODE) {
                 if (!in_array($t['addressCol'], $tableInfo['columns'])) {
                     throw new ConfigurationException(sprintf("Column '%s' does not exist in table '%s'", $t['addressCol'], $t['tableId']));
                 }
