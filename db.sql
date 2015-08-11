@@ -3,7 +3,6 @@ CREATE TABLE `geocoding_cache` (
   `query` varchar(128) NOT NULL,
   `provider` varchar(20) NOT NULL DEFAULT '',
   `locale` varchar(10) NOT NULL DEFAULT '',
-  `providerName` varchar(20) DEFAULT NULL,
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL,
   `bounds_north` decimal(10,7) DEFAULT NULL,

@@ -120,6 +120,9 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
 
     public function geocodeBatch($configId, $forwardGeocoding, $lines, $providerConfig)
     {
+        $provider = isset($providerConfig['provider']) ? $providerConfig['provider'] : null;
+        $locale = isset($providerConfig['locale']) ? $providerConfig['locale'] : null;
+
         $queries = array();
         $queriesToCheck = array();
         foreach ($lines as $line) {
@@ -131,22 +134,20 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                 // Basically analyze validity of coordinate
                 if ($line[0] === null || $line[1] === null || !is_numeric($line[0]) || !is_numeric($line[1])) {
                     $this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
-                    $this->userStorage->save($configId, array('query' => $query));
+                    $this->userStorage->save($configId, array('query' => $query, 'provider' => $provider, 'locale' => $locale));
                 } else {
                     try {
                         $queries[] = new Coordinate(array($line[0], $line[1]));
                         $queriesToCheck[] = $query;
                     } catch (InvalidArgumentException $e) {
                         $this->eventLogger->log(sprintf("Value '%s' is not valid coordinate", $query), array(), null, EventLogger::TYPE_WARN);
-                        $this->userStorage->save($configId, array('query' => $query));
+                        $this->userStorage->save($configId, array('query' => $query, 'provider' => $provider, 'locale' => $locale));
                     }
                 }
             }
         }
 
         // Get from cache
-        $provider = isset($providerConfig['provider']) ? $providerConfig['provider'] : null;
-        $locale = isset($providerConfig['locale']) ? $providerConfig['locale'] : null;
         $cache = $this->sharedStorage->get($queriesToCheck, $provider, $locale);
         $queriesToGeocode = array();
         foreach ($queries as $query) {

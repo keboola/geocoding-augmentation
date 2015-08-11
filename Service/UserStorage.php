@@ -32,10 +32,10 @@ class UserStorage
     const BUCKET_ID = 'in.c-ag-geocoding';
 
     public $tables = array(
-        'columns' => array('query', 'provider', 'latitude', 'longitude', 'bounds_south', 'bounds_east', 'bounds_west',
-            'bounds_north', 'streetNumber', 'streetName', 'city', 'zipcode', 'cityDistrict', 'county', 'countyCode',
-            'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage'),
-        'primaryKey' => 'query'
+        'columns' => array('primary', 'query', 'provider', 'locale', 'latitude', 'longitude', 'bounds_south', 'bounds_east',
+            'bounds_west', 'bounds_north', 'streetNumber', 'streetName', 'city', 'zipcode', 'cityDistrict', 'county',
+            'countyCode', 'region', 'regionCode', 'country', 'countryCode', 'timezone', 'exceptionMessage'),
+        'primaryKey' => 'primary'
     );
 
 
@@ -51,8 +51,31 @@ class UserStorage
             $this->files[$configId] = new CsvFile($this->temp->createTmpFile());
             $this->files[$configId]->writeRow($this->tables['columns']);
         }
-        unset($data['timestamp']);
-        $this->files[$configId]->writeRow($data);
+        $this->files[$configId]->writeRow(array(
+            'primary' => md5($data['query'].':'.$data['provider'].':'.$data['locale']),
+            'query' => $data['query'],
+            'provider' => $data['provider'],
+            'locale' => $data['locale'],
+            'latitude' => $data['latitude'],
+            'longitude' => $data['longitude'],
+            'bounds_south' => $data['bounds_south'],
+            'bounds_east' => $data['bounds_east'],
+            'bounds_west' => $data['bounds_west'],
+            'bounds_north' => $data['bounds_north'],
+            'streetNumber' => $data['streetNumber'],
+            'streetName' => $data['streetName'],
+            'city' => $data['city'],
+            'zipcode' => $data['zipcode'],
+            'cityDistrict' => $data['cityDistrict'],
+            'county' => $data['county'],
+            'countyCode' => $data['countyCode'],
+            'region' => $data['region'],
+            'regionCode' => $data['regionCode'],
+            'country' => $data['country'],
+            'countryCode' => $data['countryCode'],
+            'timezone' => $data['timezone'],
+            'exceptionMessage' => $data['exceptionMessage']
+        ));
     }
 
     public function uploadData()
@@ -71,7 +94,13 @@ class UserStorage
                 if (!$this->storageApiClient->tableExists($tableId)) {
                     $this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file, $options);
                 } else {
-                    $this->storageApiClient->writeTableAsync($tableId, $file, $options);
+                    $table = $this->storageApiClient->getTable($tableId);
+                    if (!in_array($this->tables['primaryKey'], $table['primaryKey'])) {
+                        $this->storageApiClient->dropTable($tableId);
+                        $this->storageApiClient->createTableAsync(self::BUCKET_ID, $name, $file, $options);
+                    } else {
+                        $this->storageApiClient->writeTableAsync($tableId, $file, $options);
+                    }
                 }
             } catch (\Keboola\StorageApi\ClientException $e) {
                 throw new UserException($e->getMessage(), $e);

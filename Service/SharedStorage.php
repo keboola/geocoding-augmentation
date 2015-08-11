@@ -55,7 +55,6 @@ class SharedStorage
             'query' => $batch->getQuery(),
             'provider' => $provider ? $provider : '-',
             'locale' => $locale ? $locale : '-',
-            'providerName' => $batch->getProviderName(),
             'latitude' => $batch->getLatitude(),
             'longitude' => $batch->getLongitude(),
             'bounds_south' =>  $bounds['south'],
