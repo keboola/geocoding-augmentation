@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS `geocoding_cache`;
 CREATE TABLE `geocoding_cache` (
   `query` varchar(128) NOT NULL,
+  `provider` varchar(20) NOT NULL DEFAULT '',
+  `locale` varchar(10) NOT NULL DEFAULT '',
   `providerName` varchar(20) DEFAULT NULL,
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL,
@@ -22,5 +24,5 @@ CREATE TABLE `geocoding_cache` (
   `timezone` varchar(10) DEFAULT NULL,
   `exceptionMessage` varchar(255) DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`query`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`query`,`provider`,`locale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
