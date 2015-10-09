@@ -74,7 +74,7 @@ class UserStorage
             'country' => $data['country'],
             'countryCode' => $data['countryCode'],
             'timezone' => $data['timezone'],
-            'exceptionMessage' => $data['exceptionMessage']
+            'exceptionMessage' => !empty($data['exceptionMessage']) ? $data['exceptionMessage'] : null
         ));
     }
 
