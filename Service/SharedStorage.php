@@ -72,8 +72,7 @@ class SharedStorage
             'regionCode' => $batch->getRegionCode(),
             'country' => $batch->getCountry(),
             'countryCode' => $batch->getCountryCode(),
-            'timezone' => $batch->getTimezone(),
-            'exceptionMessage' => $batch->getExceptionMessage()
+            'timezone' => $batch->getTimezone()
         );
         return $data;
     }

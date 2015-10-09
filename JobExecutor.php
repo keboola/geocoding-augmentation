@@ -178,7 +178,9 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                 /** @var \League\Geotools\Batch\BatchGeocoded $g */
                 $data = $this->sharedStorage->prepareData($g, $provider, $locale);
 
-                $this->sharedStorage->save($data);
+                if (empty($data['exceptionMessage'])) {
+                    $this->sharedStorage->save($data);
+                }
                 $this->userStorage->save($configId, $data);
 
                 if ($forwardGeocoding ? $g->getLatitude() == 0 && $g->getLongitude() == 0 : !$g->getCountry()) {
@@ -233,15 +235,8 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                 default:
                     throw new UserException("Unknown configured provider {$config['provider']}");
             }
-        }
-
-        // @TODO Fallback to default
-        if (!$this->provider) {
-            $this->provider = new ChainProvider(array(
-                new GoogleMapsProvider($httpAdapter, $locale, null, true, $this->defaultGoogleKey),
-                new YandexProvider($httpAdapter, $locale),
-                new NominatimProvider($httpAdapter, 'http://nominatim.openstreetmap.org', $locale),
-            ));
+        } else {
+            throw new UserException("No provider configured");
         }
 
         $this->geocoder->registerProvider($this->provider);
