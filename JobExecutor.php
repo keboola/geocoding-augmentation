@@ -47,11 +47,9 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
     protected $sharedStorage;
     /** @var ProviderInterface */
     protected $provider;
-    protected $defaultGoogleKey;
 
-    public function __construct(SharedStorage $sharedStorage, Temp $temp, $googleApiKey)
+    public function __construct(SharedStorage $sharedStorage, Temp $temp)
     {
-        $this->defaultGoogleKey = $googleApiKey;
         $this->geocoder = new Geocoder();
         $this->geotools = new Geotools();
 

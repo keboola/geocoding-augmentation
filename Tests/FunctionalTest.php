@@ -40,7 +40,7 @@ class FunctionalTest extends AbstractTest
 
         $temp = new \Keboola\Temp\Temp(self::APP_NAME);
 
-        $this->jobExecutor = new JobExecutor($sharedStorage, $temp, GOOGLE_KEY, MAPQUEST_KEY);
+        $this->jobExecutor = new JobExecutor($sharedStorage, $temp);
         $this->jobExecutor->setStorageApi($this->storageApiClient);
     }
 
@@ -62,6 +62,8 @@ class FunctionalTest extends AbstractTest
         $t = new Table($this->storageApiClient, $configTableId);
         $t->setHeader(array('tableId', 'addressCol'));
         $t->setAttribute('method', 'geocode');
+        $t->setAttribute('provider', 'google_maps');
+        $t->setAttribute('apiKey', GOOGLE_KEY);
         $t->setFromArray(array(
             array($this->dataTableId, 'addr')
         ));
@@ -103,6 +105,8 @@ class FunctionalTest extends AbstractTest
         $t = new Table($this->storageApiClient, $configTableId);
         $t->setHeader(array('tableId', 'latitudeCol', 'longitudeCol'));
         $t->setAttribute('method', 'reverse');
+        $t->setAttribute('provider', 'google_maps');
+        $t->setAttribute('apiKey', GOOGLE_KEY);
         $t->setFromArray(array(
             array($this->dataTableId, 'lat', 'lon')
         ));
