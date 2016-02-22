@@ -178,12 +178,13 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
 
                 if (empty($data['exceptionMessage'])) {
                     $this->sharedStorage->save($data);
+                    if ($forwardGeocoding ? $g->getLatitude() == 0 && $g->getLongitude() == 0 : !$g->getCountry()) {
+                        $this->eventLogger->log("No result for location '{$g->getQuery()}' found", array(), null, EventLogger::TYPE_WARN);
+                    }
+                } else {
+                    $this->eventLogger->log("API error for location '{$g->getQuery()}': {$data['exceptionMessage']}", array(), null, EventLogger::TYPE_WARN);
                 }
                 $this->userStorage->save($configId, $data);
-
-                if ($forwardGeocoding ? $g->getLatitude() == 0 && $g->getLongitude() == 0 : !$g->getCountry()) {
-                    $this->eventLogger->log(sprintf("No result for location '%s' found", $g->getQuery()), array(), null, EventLogger::TYPE_WARN);
-                }
             }
 
         }
