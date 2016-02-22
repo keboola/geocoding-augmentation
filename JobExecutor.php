@@ -181,6 +181,9 @@ class JobExecutor extends \Keboola\Syrup\Job\Executor
                     }
                 } else {
                     $this->eventLogger->log("API error for location '{$g->getQuery()}': {$data['exceptionMessage']}", array(), null, EventLogger::TYPE_WARN);
+                    if (strpos($data['exceptionMessage'], 'quota exceeded') !== false) {
+                        throw new UserException("API quota exceeded!", null, $data);
+                    }
                 }
                 $this->userStorage->save($configId, $data);
             }
