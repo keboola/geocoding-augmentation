@@ -30,8 +30,9 @@ class ParametersValidation
         if (!isset($config['parameters']['method'])) {
             throw new Exception("Missing parameter 'method'");
         }
-        if ($config['parameters']['method'] != 'geocode' && $config['parameters']['method'] != 'reverse') {
-            throw new Exception("Parameter 'method' must have value 'geocode' or 'reverse'");
+        if (!in_array($config['parameters']['method'], [Augmentation::METHOD_GEOCODE, Augmentation::METHOD_REVERSE])) {
+            throw new Exception("Parameter 'method' must have value '".Augmentation::METHOD_GEOCODE."' or '"
+                . Augmentation::METHOD_REVERSE."'");
         }
 
         if (!isset($config['parameters']['provider'])) {

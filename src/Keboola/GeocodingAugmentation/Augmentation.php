@@ -27,7 +27,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Augmentation
 {
-    const METHOD_GEOCODE = 'forward';
+    const METHOD_GEOCODE = 'geocode';
     const METHOD_REVERSE = 'reverse';
 
 

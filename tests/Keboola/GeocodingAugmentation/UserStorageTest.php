@@ -32,9 +32,9 @@ class UserStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(file_exists("{$temp->getTmpFolder()}/$table"));
         if (($handle = fopen("{$temp->getTmpFolder()}/$table", "r")) !== false) {
             $row1 = fgetcsv($handle, 1000, ",");
-            $this->assertEquals(["primary","latitude","longitude","date","key","value"], $row1);
+            $this->assertEquals(["primary","query","provider","locale","latitude","longitude","bounds_south","bounds_east","bounds_west","bounds_north","streetNumber","streetName","city","zipcode","cityDistrict","county","countyCode","region","regionCode","country","countryCode","timezone","exceptionMessage"], $row1);
             $row2 = fgetcsv($handle, 1000, ",");
-            $this->assertEquals(["key","10.5","13.4","2016-01-01","temperature","-12.5"], $row2);
+            $this->assertEquals(["key","test","yandex","en","10.5","13.4","","","","","","","","","","","","","","","","",""], $row2);
             fclose($handle);
         } else {
             $this->fail();
