@@ -1,14 +1,8 @@
-branches:
-  only:
-    - master
-
 sudo: false
 
 language: php
 php:
   - '7.0'
-services:
-  - mysql
 
 before_script:
   - composer self-update
