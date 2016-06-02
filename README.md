@@ -1,12 +1,14 @@
 geocoding-augmentation
 ================
 
-[![Build Status](https://travis-ci.org/keboola/geocoding-augmentation.svg?branch=master)](https://travis-ci.org/keboola/geocoding-augmentation)
+KBC Docker app for geocoding of locations to gps coordinates or reverse
+ geocoding of coordinates to locations. You specify from which provider 
+ we get the data and you have to obtain access to the service.
 
-Geocoding augmentation component for Keboola Connection. 
+## Status
 
-It is bundle for Keboola Syrup environment, see https://github.com/keboola/syrup.
+[![Build Status](https://travis-ci.org/keboola/geocoding-augmentation.svg)](https://travis-ci.org/keboola/geocoding-augmentation) [![Code Climate](https://codeclimate.com/github/keboola/geocoding-augmentation/badges/gpa.svg)](https://codeclimate.com/github/keboola/geocoding-augmentation) [![Test Coverage](https://codeclimate.com/github/keboola/geocoding-augmentation/badges/coverage.svg)](https://codeclimate.com/github/keboola/geocoding-augmentation/coverage)
 
-The application needs Google Maps API key and MapQuest API key (both specified in `parameters.yml`) 
-and database with structure according to `db.sql`.
+# Source data
+- latitudes and longitudes have to be decimal degrees
 

@@ -9,6 +9,7 @@ namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\GeocodingAugmentation\Exception;
 use Keboola\GeocodingAugmentation\ParametersValidation;
+use Keboola\Temp\Temp;
 
 class ParametersValidationTest extends \PHPUnit_Framework_TestCase
 {
@@ -79,31 +80,45 @@ class ParametersValidationTest extends \PHPUnit_Framework_TestCase
 
     public function testValidateTable()
     {
-        ParametersValidation::validateTable('geocode', 'table', ['columns' => ['1']]);
+        $temp = new Temp();
+        $temp->initRunFolder();
 
+        $file = $temp->createFile(uniqid());
+        file_put_contents($file->getRealPath(), '1');
+        ParametersValidation::validateTable('geocode', 'table', $file->getRealPath());
+
+        $file = $temp->createFile(uniqid());
+        file_put_contents($file->getRealPath(), '1,2');
         try {
-            ParametersValidation::validateTable('geocode', 'table', ['columns' => ['1', '2']]);
+            ParametersValidation::validateTable('geocode', 'table', $file->getRealPath());
             $this->fail();
         } catch (Exception $e) {
         }
 
+        $file = $temp->createFile(uniqid());
         try {
-            ParametersValidation::validateTable('geocode', 'table', ['columns' => []]);
+            ParametersValidation::validateTable('geocode', 'table', $file->getRealPath());
             $this->fail();
         } catch (Exception $e) {
         }
 
 
-        ParametersValidation::validateTable('reverse', 'table', ['columns' => ['1', '2']]);
+        $file = $temp->createFile(uniqid());
+        file_put_contents($file->getRealPath(), '1,2');
+        ParametersValidation::validateTable('reverse', 'table', $file->getRealPath());
 
+        $file = $temp->createFile(uniqid());
+        file_put_contents($file->getRealPath(), '1');
         try {
-            ParametersValidation::validateTable('reverse', 'table', ['columns' => ['1']]);
+            ParametersValidation::validateTable('reverse', 'table', $file->getRealPath());
             $this->fail();
         } catch (Exception $e) {
         }
 
+        $file = $temp->createFile(uniqid());
+        file_put_contents($file->getRealPath(), '1,2,3');
         try {
-            ParametersValidation::validateTable('reverse', 'table', ['columns' => ['1', '2', '3']]);
+            ParametersValidation::validateTable('reverse', 'table', $file->getRealPath());
             $this->fail();
         } catch (Exception $e) {
         }

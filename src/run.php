@@ -52,7 +52,7 @@ try {
         \Keboola\GeocodingAugmentation\ParametersValidation::validateTable(
             $config['parameters']['method'],
             $table,
-            $manifest
+            "{$arguments['data']}/in/tables/$table"
         );
 
         $app->process($config['parameters']['method'], "{$arguments['data']}/in/tables/$table");

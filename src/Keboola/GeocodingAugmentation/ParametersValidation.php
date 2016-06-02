@@ -6,10 +6,19 @@
  */
 namespace Keboola\GeocodingAugmentation;
 
+use Keboola\Csv\CsvFile;
+
 class ParametersValidation
 {
     public static function validate($config)
     {
+        if (isset($config['parameters']['#apiKey'])) {
+            $config['parameters']['apiKey'] = $config['parameters']['#apiKey'];
+        }
+        if (isset($config['parameters']['#privateKey'])) {
+            $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
+        }
+
         if (!isset($config['parameters']['inputTables'])) {
             throw new Exception("Missing parameter 'inputTables'");
         }
@@ -67,14 +76,15 @@ class ParametersValidation
         }
     }
 
-    public static function validateTable($method, $table, $manifest)
+    public static function validateTable($method, $table, $csvFile)
     {
+        $csv = new CsvFile($csvFile);
         if ($method == Augmentation::METHOD_GEOCODE) {
-            if (count($manifest['columns']) != 1) {
+            if (count($csv->getHeader()) != 1) {
                 throw new Exception("Input table $table must have exactly one column with locations to geocode");
             }
         } else {
-            if (count($manifest['columns']) != 2) {
+            if (count($csv->getHeader()) != 2) {
                 throw new Exception("Input table $table must have exactly two columns with latitudes and logitudes to "
                     ."reverse geocode");
             }
