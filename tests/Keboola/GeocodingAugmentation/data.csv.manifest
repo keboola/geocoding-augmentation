@@ -1,0 +1,19 @@
+id: in.c-main.coordinates
+uri: 'https://connection.keboola.com//v2/storage/tables/in.c-main.coordinates'
+name: coordinates
+primary_key:
+    - loc
+indexed_columns:
+    - loc
+created: '2016-05-23T14:20:03+0200'
+last_change_date: '2016-05-23T14:20:23+0200'
+last_import_date: '2016-05-23T14:20:23+0200'
+rows_count: 4
+data_size_bytes: 32768
+is_alias: false
+columns:
+    - loc
+    - lat
+    - lon
+    - time
+attributes: {  }

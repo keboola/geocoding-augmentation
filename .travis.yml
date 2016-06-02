@@ -6,19 +6,19 @@ sudo: false
 
 language: php
 php:
-  - '5.6'
+  - '7.0'
 services:
   - mysql
 
 before_script:
-  - mysql -e 'create database ag_geocoding_test;'
   - composer self-update
   - composer install -n --no-scripts
 script:
   - ./vendor/bin/phpcs --standard=psr2 -n --ignore=vendor .
   - ./vendor/bin/phpunit
 after_script:
-  - ./codeclimate.sh
+  - ./vendor/bin/test-reporter --stdout > codeclimate.json
+  - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"
 notifications:
   slack:
     secure: ZwEGJBi9LNocVYWbDMu5llfTxQ9UHQCbAEiGr8RsXFgALRXvYQ4Ymw2GfLGMdFAaZ55SSeTsDHa4btJ2LFWMi+r+anDN4oWDxfjtY2pdpB7lQh19PhjSKYGz59e7vX8x3iPmygMbcPFW6Bee9n8yVW9/Md6JxgBIRcoVratFyks=

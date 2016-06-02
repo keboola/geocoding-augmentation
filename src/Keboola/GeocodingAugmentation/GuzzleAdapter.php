@@ -1,15 +1,16 @@
 <?php
 /**
  * @package geocoding-augmentation
- * @copyright 2014 Keboola
+ * @copyright Keboola
  * @author Jakub Matejka <jakub@keboola.com>
  */
-
-namespace Keboola\GeocodingAugmentation\Geocoder;
-
+namespace Keboola\GeocodingAugmentation;
 use Geocoder\HttpAdapter\HttpAdapterInterface;
 use GuzzleHttp\Client;
-use GuzzleHttp\Subscriber\Retry\RetrySubscriber;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class GuzzleAdapter implements HttpAdapterInterface
 {
@@ -17,25 +18,26 @@ class GuzzleAdapter implements HttpAdapterInterface
      * @var Client
      */
     protected $client;
-
     /**
      * @param Client $client Client object
      */
     public function __construct(Client $client = null)
     {
         if (!$client) {
-            $client = new Client();
-            $retry = new RetrySubscriber([
-                'filter' => RetrySubscriber::createChainFilter(array(
-                        RetrySubscriber::createCurlFilter(),
-                        RetrySubscriber::createStatusFilter()
-                    ))
-            ]);
-            $client->getEmitter()->attach($retry);
+            $handlerStack = HandlerStack::create();
+            /** @noinspection PhpUnusedParameterInspection */
+            $handlerStack->push(Middleware::retry(
+                function ($retries, RequestInterface $request, ResponseInterface $response = null, $error = null) {
+                    return $retries <= 10;
+                },
+                function ($retries) {
+                    return (int) pow(2, $retries - 1) * 1000;
+                }
+            ));
+            $client = new \GuzzleHttp\Client(['handler' => $handlerStack]);
         }
         $this->client = $client;
     }
-
     /**
      * {@inheritDoc}
      */
@@ -44,7 +46,6 @@ class GuzzleAdapter implements HttpAdapterInterface
         $response = $this->client->get($url);
         return (string) $response->getBody();
     }
-
     /**
      * {@inheritDoc}
      */

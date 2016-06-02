@@ -1,10 +1,6 @@
 .idea
-parameters.yml
-parameters_shared.yml
 composer.phar
 vendor
-Tests/config.php
-
-# osx noise
-.DS_Store
-profile
+run-test.sh
+data
+build
