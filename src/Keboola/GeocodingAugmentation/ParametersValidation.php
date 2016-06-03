@@ -12,13 +12,6 @@ class ParametersValidation
 {
     public static function validate($config)
     {
-        if (isset($config['parameters']['#apiKey'])) {
-            $config['parameters']['apiKey'] = $config['parameters']['#apiKey'];
-        }
-        if (isset($config['parameters']['#privateKey'])) {
-            $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
-        }
-
         if (!isset($config['storage']['input']['tables']) || ! count($config['storage']['input']['tables'])) {
             throw new Exception("There is no table configured in input mapping");
         }

@@ -33,6 +33,13 @@ if (!file_exists("{$arguments['data']}/out/tables")) {
     mkdir("{$arguments['data']}/out/tables");
 }
 
+if (isset($config['parameters']['#apiKey'])) {
+    $config['parameters']['apiKey'] = $config['parameters']['#apiKey'];
+}
+if (isset($config['parameters']['#privateKey'])) {
+    $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
+}
+
 try {
     $app = new \Keboola\GeocodingAugmentation\Augmentation(
         "{$arguments['data']}/out/tables/{$config['storage']['output']['tables'][0]['source']}",
