@@ -24,8 +24,6 @@ if (!isset($arguments['data'])) {
 }
 $config = Yaml::parse(file_get_contents("{$arguments['data']}/config.yml"));
 
-\Keboola\GeocodingAugmentation\ParametersValidation::validate($config);
-
 if (!file_exists("{$arguments['data']}/out")) {
     mkdir("{$arguments['data']}/out");
 }
@@ -41,6 +39,8 @@ if (isset($config['parameters']['#privateKey'])) {
 }
 
 try {
+    \Keboola\GeocodingAugmentation\ParametersValidation::validate($config);
+    
     $app = new \Keboola\GeocodingAugmentation\Augmentation(
         "{$arguments['data']}/out/tables/{$config['storage']['output']['tables'][0]['source']}",
         $config['storage']['output']['tables'][0]['destination'],
