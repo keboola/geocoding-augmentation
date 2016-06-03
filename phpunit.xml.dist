@@ -22,4 +22,15 @@
 			<file>tests/Keboola/GeocodingAugmentation/FunctionalTest.php</file>
 		</testsuite>
 	</testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+        </whitelist>
+        <blacklist>
+            <directory>build</directory>
+            <directory>tests</directory>
+            <directory>vendor</directory>
+        </blacklist>
+    </filter>
 </phpunit>
