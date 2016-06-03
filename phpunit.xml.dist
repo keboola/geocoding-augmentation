@@ -28,6 +28,7 @@
             <directory suffix=".php">src</directory>
         </whitelist>
         <blacklist>
+            <file>src/run.php</file>
             <directory>build</directory>
             <directory>tests</directory>
             <directory>vendor</directory>
