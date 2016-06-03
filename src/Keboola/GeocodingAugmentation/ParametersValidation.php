@@ -19,22 +19,14 @@ class ParametersValidation
             $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
         }
 
-        if (!isset($config['parameters']['inputTables'])) {
-            throw new Exception("Missing parameter 'inputTables'");
+        if (!isset($config['storage']['input']['tables']) || ! count($config['storage']['input']['tables'])) {
+            throw new Exception("There is no table configured in input mapping");
         }
 
-        if (!isset($config['parameters']['outputTable'])) {
-            throw new Exception("Missing parameter outputTable");
+        if (!isset($config['storage']['output']['tables']) || ! count($config['storage']['output']['tables'])) {
+            throw new Exception("There is no table configured in output mapping");
         }
-        if (!isset($config['storage']['output']['tables'][0]['destination'])) {
-            throw new Exception("Destination table is not connected to output mapping");
-        }
-        if ($config['parameters']['outputTable'] != $config['storage']['output']['tables'][0]['source']) {
-            throw new Exception("Parameter 'outputTable' with value '{$config['parameters']['outputTable']}' does not "
-                . "correspond to table connected using output mapping: "
-                . "'{$config['storage']['output']['tables'][0]['source']}' for table "
-                . "({$config['storage']['output']['tables'][0]['destination']}) ");
-        }
+
 
         if (!isset($config['parameters']['method'])) {
             throw new Exception("Missing parameter 'method'");
@@ -85,7 +77,7 @@ class ParametersValidation
             }
         } else {
             if (count($csv->getHeader()) != 2) {
-                throw new Exception("Input table $table must have exactly two columns with latitudes and logitudes to "
+                throw new Exception("Input table $table must have exactly two columns with latitudes and longitudes to "
                     ."reverse geocode");
             }
         }

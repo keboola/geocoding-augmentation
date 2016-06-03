@@ -20,11 +20,7 @@ class ParametersValidationTest extends \PHPUnit_Framework_TestCase
             'parameters' => [
                 'method' => 'geocode',
                 'provider' => 'google_maps',
-                'apiKey' => 'key',
-                'outputTable' => 'geocoding.csv',
-                'inputTables' => [
-                    'coordinates.csv'
-                ]
+                'apiKey' => 'key'
             ],
             'storage' => [
                 'input' => [
@@ -62,15 +58,6 @@ class ParametersValidationTest extends \PHPUnit_Framework_TestCase
         // missing apiKey for google_maps provider
         $config = $defaultConfig;
         unset($config['parameters']['apiKey']);
-        try {
-            ParametersValidation::validate($config);
-            $this->fail();
-        } catch (Exception $e) {
-        }
-
-        // wrong output mapping
-        $config = $defaultConfig;
-        $config['storage']['output']['tables'][0]['source'] = uniqid();
         try {
             ParametersValidation::validate($config);
             $this->fail();

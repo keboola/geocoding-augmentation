@@ -47,6 +47,6 @@ class UserStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('incremental', $manifest);
         $this->assertEquals(true, $manifest['incremental']);
         $this->assertArrayHasKey('primary_key', $manifest);
-        $this->assertEquals("primary", $manifest['primary_key']);
+        $this->assertEquals(["primary"], $manifest['primary_key']);
     }
 }

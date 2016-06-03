@@ -35,27 +35,24 @@ if (!file_exists("{$arguments['data']}/out/tables")) {
 
 try {
     $app = new \Keboola\GeocodingAugmentation\Augmentation(
-        "{$arguments['data']}/out/tables/{$config['parameters']['outputTable']}",
+        "{$arguments['data']}/out/tables/{$config['storage']['output']['tables'][0]['source']}",
         $config['storage']['output']['tables'][0]['destination'],
         $config['parameters']
     );
 
-    foreach ($config['parameters']['inputTables'] as $table) {
-        if (!file_exists("{$arguments['data']}/in/tables/$table")) {
-            throw new Exception("File '$table' was not injected to the app");
+    foreach ($config['storage']['input']['tables'] as $table) {
+
+        if (!file_exists("{$arguments['data']}/in/tables/{$table['destination']}")) {
+            throw new Exception("File '{$table['destination']}' was not injected to the app");
         }
-        $manifest = Yaml::parse(
-            file_get_contents("{$arguments['data']}/in/tables/$table.manifest"),
-            true
-        );
 
         \Keboola\GeocodingAugmentation\ParametersValidation::validateTable(
             $config['parameters']['method'],
-            $table,
-            "{$arguments['data']}/in/tables/$table"
+            $table['destination'],
+            "{$arguments['data']}/in/tables/{$table['destination']}"
         );
 
-        $app->process($config['parameters']['method'], "{$arguments['data']}/in/tables/$table");
+        $app->process($config['parameters']['method'], "{$arguments['data']}/in/tables/{$table['destination']}");
     }
 
     exit(0);
