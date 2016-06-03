@@ -41,7 +41,6 @@ try {
     );
 
     foreach ($config['storage']['input']['tables'] as $table) {
-
         if (!file_exists("{$arguments['data']}/in/tables/{$table['destination']}")) {
             throw new Exception("File '{$table['destination']}' was not injected to the app");
         }
