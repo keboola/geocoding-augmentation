@@ -16,8 +16,10 @@
 	</php>
 	<testsuites>
 		<testsuite name="part-1">
-			<file>Tests/UserStorageTest.php</file>
-            <file>Tests/FunctionalTest.php</file>
+            <file>Tests/Keboola/GeocodingAugmentation/ParametersValidationTest.php</file>
+            <file>Tests/Keboola/GeocodingAugmentation/UserStorageTest.php</file>
+            <file>Tests/Keboola/GeocodingAugmentation/AugmentationTest.php</file>
+			<file>Tests/Keboola/GeocodingAugmentation/FunctionalTest.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>

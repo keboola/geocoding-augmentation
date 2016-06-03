@@ -4,5 +4,9 @@
  * @copyright Keboola
  * @author Jakub Matejka <jakub@keboola.com>
  */
+namespace Keboola\GeocodingAugmentation;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+class Exception extends \Exception
+{
+    
+}

@@ -1,7 +1,0 @@
-services:
-    ag_geocoding.shared_storage:
-        class: Keboola\GeocodingAugmentation\Service\SharedStorage
-        arguments: [@doctrine.dbal.default_connection]
-    ag_geocoding.job_executor:
-        class: Keboola\GeocodingAugmentation\JobExecutor
-        arguments: [@ag_geocoding.shared_storage, @syrup.temp, %google_key%, %mapquest_key%]
