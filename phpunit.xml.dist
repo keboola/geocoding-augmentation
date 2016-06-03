@@ -15,11 +15,11 @@
 		<ini name="display_errors" value="true"/>
 	</php>
 	<testsuites>
-		<testsuite name="part-1">
-            <file>Tests/Keboola/GeocodingAugmentation/ParametersValidationTest.php</file>
-            <file>Tests/Keboola/GeocodingAugmentation/UserStorageTest.php</file>
-            <file>Tests/Keboola/GeocodingAugmentation/AugmentationTest.php</file>
-			<file>Tests/Keboola/GeocodingAugmentation/FunctionalTest.php</file>
+		<testsuite name="all">
+            <file>tests/Keboola/GeocodingAugmentation/ParametersValidationTest.php</file>
+            <file>tests/Keboola/GeocodingAugmentation/UserStorageTest.php</file>
+            <file>tests/Keboola/GeocodingAugmentation/AugmentationTest.php</file>
+			<file>tests/Keboola/GeocodingAugmentation/FunctionalTest.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>
