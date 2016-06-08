@@ -102,11 +102,14 @@ class Augmentation
 
         foreach ($result as $g) {
             /** @var \League\Geotools\Batch\BatchGeocoded $g */
-            $adminLevels = $g->getAddress()->getAdminLevels();
+            $address = $g->getAddress();
+            $adminLevels = $address ? $address->getAdminLevels() : null;
             /** @var AdminLevel $region */
-            $region = $adminLevels->has(1) ? $adminLevels->get(1) : null;
+            $region = $adminLevels && $adminLevels->has(1) ? $adminLevels->get(1) : null;
             /** @var AdminLevel $county */
-            $county = $adminLevels->has(2) ? $adminLevels->get(2) : null;
+            $county = $adminLevels && $adminLevels->has(2) ? $adminLevels->get(2) : null;
+            $bounds = $address ? $address->getBounds() : null;
+            $country = $address ? $address->getCountry() : null;
             $data = [
                 'primary' => md5($g->getQuery().':'.$this->provider.':'.$this->locale),
                 'query' => $g->getQuery(),
@@ -114,22 +117,22 @@ class Augmentation
                 'locale' => $this->locale,
                 'latitude' => $g->getLatitude(),
                 'longitude' => $g->getLongitude(),
-                'bounds_south' => $g->getAddress()->getBounds()->getSouth(),
-                'bounds_east' => $g->getAddress()->getBounds()->getEast(),
-                'bounds_west' => $g->getAddress()->getBounds()->getWest(),
-                'bounds_north' => $g->getAddress()->getBounds()->getNorth(),
-                'streetNumber' => $g->getAddress()->getStreetNumber(),
-                'streetName' => $g->getAddress()->getStreetName(),
-                'city' => $g->getAddress()->getLocality(),
-                'zipcode' => $g->getAddress()->getPostalCode(),
-                'cityDistrict' => $g->getAddress()->getSubLocality(),
+                'bounds_south' => $bounds ? $bounds->getSouth() : null,
+                'bounds_east' => $bounds ? $bounds->getEast() : null,
+                'bounds_west' => $bounds ? $bounds->getWest() : null,
+                'bounds_north' => $bounds ? $bounds->getNorth() : null,
+                'streetNumber' => $address ? $address->getStreetNumber() : null,
+                'streetName' => $address ? $address->getStreetName() : null,
+                'city' => $address ? $address->getLocality() : null,
+                'zipcode' => $address ? $address->getPostalCode() : null,
+                'cityDistrict' => $address ? $address->getSubLocality() : null,
                 'county' => $county ? $county->getName() : null,
                 'countyCode' => $county ? $county->getCode() : null,
                 'region' => $region ? $region->getName() : null,
                 'regionCode' => $region ? $region->getCode() : null,
-                'country' => $g->getAddress()->getCountry()->getName(),
-                'countryCode' => $g->getAddress()->getCountry()->getCode(),
-                'timezone' => $g->getAddress()->getTimezone(),
+                'country' => $country ? $country->getName() : null,
+                'countryCode' => $country ? $country->getCode() : null,
+                'timezone' => $address ? $address->getTimezone() : null,
                 'exceptionMessage' => $g->getExceptionMessage()
             ];
 
