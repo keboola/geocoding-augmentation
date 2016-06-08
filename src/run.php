@@ -65,4 +65,8 @@ try {
 } catch (\Keboola\GeocodingAugmentation\Exception $e) {
     print $e->getMessage();
     exit(1);
+} catch (\Exception $e) {
+    print $e->getMessage();
+    print $e->getTraceAsString();
+    exit(2);
 }
