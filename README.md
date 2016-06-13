@@ -4,6 +4,8 @@ geocoding-augmentation
 KBC Docker app for geocoding of locations to gps coordinates or reverse
  geocoding of coordinates to locations. You specify from which provider 
  we get the data and you have to obtain access to the service.
+ 
+ [User Documentation](https://help.keboola.com/extractors/geocoding-augumentation/)
 
 ## Status
 
