@@ -9,9 +9,8 @@
 		 processIsolation="false"
 		 stopOnFailure="true"
 		 syntaxCheck="false"
-		 bootstrap="Tests/bootstrap.php">
+		 bootstrap="tests/bootstrap.php">
 	<php>
-		<server name="KERNEL_DIR" value="vendor/keboola/syrup/app/" />
 		<ini name="display_errors" value="true"/>
 	</php>
 	<testsuites>
