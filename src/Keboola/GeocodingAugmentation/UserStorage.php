@@ -24,21 +24,19 @@ class UserStorage
     {
         $this->outputFile = $outputFile;
         $this->destination = $destination;
+
+        $this->file = new CsvFile($this->outputFile);
+        $this->file->writeRow(self::$columns);
+
+        file_put_contents("$this->outputFile.manifest", Yaml::dump([
+            'destination' => $this->destination,
+            'incremental' => true,
+            'primary_key' => self::$primaryKey
+        ]));
     }
 
     public function save($data)
     {
-        if (!$this->file) {
-            $this->file = new CsvFile($this->outputFile);
-            $this->file->writeRow(self::$columns);
-
-            file_put_contents("$this->outputFile.manifest", Yaml::dump([
-                'destination' => $this->destination,
-                'incremental' => true,
-                'primary_key' => self::$primaryKey
-            ]));
-        }
-
         $dataToSave = ['primary' => md5($data['query'].':'.$data['provider'].':'.$data['locale'])];
         foreach (self::$columns as $c) {
             $dataToSave[$c] = isset($data[$c]) ? $data[$c] : null;
