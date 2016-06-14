@@ -4,3 +4,4 @@ vendor
 run-test.sh
 data
 build
+vars

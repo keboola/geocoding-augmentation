@@ -1,15 +1,39 @@
-sudo: false
+sudo: required
 
-language: php
-php:
-  - '7.0'
+language: bash
+
+services:
+  - docker
+
+env:
+  DOCKER_COMPOSE_VERSION: 1.6.2
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" -y install docker-engine
+
+install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
 before_script:
-  - composer self-update
-  - composer install -n --no-scripts
+  - docker -v
+  - docker-compose -v
+  - docker-compose build tests-with-report
+
 script:
-  - ./vendor/bin/phpcs --standard=psr2 -n --ignore=vendor .
-  - ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
-after_script:
-  - ./vendor/bin/test-reporter --stdout > codeclimate.json
-  - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"
+  - >
+    docker-compose run
+    --rm
+    -e CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN
+    tests-with-report
+after_success:
+  - docker images
+
+deploy:
+  provider: script
+  script: ./deploy.sh
+  on:
+    tags: true
