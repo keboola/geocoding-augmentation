@@ -63,10 +63,20 @@ try {
 
     exit(0);
 } catch (\Keboola\GeocodingAugmentation\Exception $e) {
-    print $e->getMessage();
+    print sanitizeError($e->getMessage());
     exit(1);
 } catch (\Exception $e) {
-    print $e->getMessage();
-    print $e->getTraceAsString();
+    print sanitizeError($e->getMessage());
     exit(2);
+}
+
+function sanitizeError($message)
+{
+    if (!empty($config['parameters']['apiKey'])) {
+        $message = str_replace($message, $config['parameters']['privateKey'], '--apiKey--');
+    }
+    if (!empty($config['parameters']['privateKey'])) {
+        $message = str_replace($message, $config['parameters']['privateKey'], '--privateKey--');
+    }
+    return $message;
 }
