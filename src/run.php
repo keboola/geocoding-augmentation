@@ -73,7 +73,7 @@ try {
 function sanitizeError($message)
 {
     if (!empty($config['parameters']['apiKey'])) {
-        $message = str_replace($message, $config['parameters']['privateKey'], '--apiKey--');
+        $message = str_replace($message, $config['parameters']['apiKey'], '--apiKey--');
     }
     if (!empty($config['parameters']['privateKey'])) {
         $message = str_replace($message, $config['parameters']['privateKey'], '--privateKey--');
