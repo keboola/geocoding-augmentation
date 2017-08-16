@@ -9,6 +9,14 @@ services:
     stdin_open: true
     command: ./tests.sh
 
+  dev:
+    image: keboola/geocoding-augmentation
+    tty: true
+    stdin_open: true
+    command: ./tests.sh
+    volumes:
+     - .:/code
+
   tests-with-report:
     extends:
       service: tests
