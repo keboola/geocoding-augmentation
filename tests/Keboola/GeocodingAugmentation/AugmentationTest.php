@@ -64,7 +64,7 @@ class AugmentationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('openstreetmap', $row[2]);
         $this->assertEquals('cs', $row[3]);
         $this->assertEquals(50.0874654, $row[4]);
-        $this->assertEquals(14.4212503, $row[5]);
+        $this->assertEquals(14.4212535, $row[5]);
         $this->assertEquals('Praha', $row[12]);
         $this->assertEquals('okres Hlavní město Praha', $row[15]);
         $this->assertEquals('Praha', $row[17]);
