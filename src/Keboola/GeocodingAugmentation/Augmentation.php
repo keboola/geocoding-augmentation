@@ -96,7 +96,12 @@ class Augmentation
             $batch->geocode($queries);
         } else {
             $queries = $this->prepareCoordinatesBatch($queries);
-            $batch->reverse($queries);
+
+            try {
+                $batch->reverse($queries);
+            } catch (InvalidArgumentException $e) {
+                throw new Exception($e->getMessage());
+            }
         }
         $result = $batch->parallel();
 
