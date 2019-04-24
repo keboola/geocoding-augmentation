@@ -8,18 +8,14 @@ services:
     tty: true
     stdin_open: true
     command: ./tests.sh
+    environment:
+      - GOOGLE_MAPS_API_KEY
 
   dev:
+    build: .
     image: keboola/geocoding-augmentation
     tty: true
     stdin_open: true
     command: ./tests.sh
     volumes:
      - .:/code
-
-  tests-with-report:
-    extends:
-      service: tests
-    volumes:
-      - ./.git:/code/.git
-    command: sh -c './tests.sh && ./vendor/bin/test-reporter'

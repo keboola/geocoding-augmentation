@@ -9,7 +9,7 @@ KBC Docker app for geocoding of locations to gps coordinates or reverse
 
 ## Status
 
-[![Build Status](https://travis-ci.org/keboola/geocoding-augmentation.svg)](https://travis-ci.org/keboola/geocoding-augmentation) [![Code Climate](https://codeclimate.com/github/keboola/geocoding-augmentation/badges/gpa.svg)](https://codeclimate.com/github/keboola/geocoding-augmentation) [![Test Coverage](https://codeclimate.com/github/keboola/geocoding-augmentation/badges/coverage.svg)](https://codeclimate.com/github/keboola/geocoding-augmentation/coverage)
+[![Build Status](https://travis-ci.org/keboola/geocoding-augmentation.svg)](https://travis-ci.org/keboola/geocoding-augmentation) [![Code Climate](https://codeclimate.com/github/keboola/geocoding-augmentation/badges/gpa.svg)](https://codeclimate.com/github/keboola/geocoding-augmentation)
 
 # Source data
 - source tables must contain exactly one column with locales in case of forward geocoding or exactly two columns in case of reverse geocoding
@@ -31,7 +31,7 @@ KBC Docker app for geocoding of locations to gps coordinates or reverse
         - **map_quest** - MapQuest provider, needs parameter **apiKey**
         - **tomtom** - TomTom provider, needs parameter **apiKey**, parameter locale may have one of these values: de, es, fr, it, nl, pl, pt, sv
         - **opencage**: OpenCage provider, needs parameter **apiKey**
-        - **openstreetmap**: OpenStreetMap provider, does not need API key
+        - **nominatim**: OpenStreetMap provider, does not need API key
     - **locale** - code of language used for local names 
  
 Parameters **apiKey** and **privateKey** can be encrypted and it is recommended to encrypt them.

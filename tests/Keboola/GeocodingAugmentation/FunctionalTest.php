@@ -1,27 +1,18 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
-
 namespace Keboola\GeocodingAugmentation\Tests;
 
-use Keboola\Csv\CsvFile;
-use Keboola\GeocodingAugmentation\Augmentation;
 use Keboola\Temp\Temp;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Yaml\Yaml;
 
-class FunctionalTest extends \PHPUnit_Framework_TestCase
+class FunctionalTest extends TestCase
 {
 
     public function testFunctional()
     {
         $temp = new Temp();
-        $temp->initRunFolder();
 
-        file_put_contents($temp->getTmpFolder() . '/config.yml', Yaml::dump([
+        file_put_contents($temp->getTmpFolder() . '/config.json', json_encode([
             'storage' => [
                 'input' => [
                     'tables' => [
@@ -55,7 +46,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
         copy(__DIR__ . '/coordinates.csv', $temp->getTmpFolder().'/in/tables/coordinates.csv');
         copy(__DIR__ . '/coordinates.csv.manifest', $temp->getTmpFolder().'/in/tables/coordinates.csv.manifest');
 
-        $process = new Process("php ".__DIR__."/../../../src/run.php --data=".$temp->getTmpFolder());
+        $process = new Process(['php', __DIR__.'/../../../src/run.php', '--data='.$temp->getTmpFolder()]);
         $process->setTimeout(null);
         $process->run();
         if (!$process->isSuccessful()) {
@@ -68,9 +59,8 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
     public function testFunctionalEmptyInput()
     {
         $temp = new Temp();
-        $temp->initRunFolder();
 
-        file_put_contents($temp->getTmpFolder() . '/config.yml', Yaml::dump([
+        file_put_contents($temp->getTmpFolder() . '/config.json', json_encode([
             'storage' => [
                 'input' => [
                     'tables' => [
@@ -104,7 +94,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
         file_put_contents($temp->getTmpFolder().'/in/tables/coordinates.csv', 'lat,lon');
         copy(__DIR__ . '/coordinates.csv.manifest', $temp->getTmpFolder().'/in/tables/coordinates.csv.manifest');
 
-        $process = new Process("php ".__DIR__."/../../../src/run.php --data=".$temp->getTmpFolder());
+        $process = new Process(['php', __DIR__.'/../../../src/run.php', '--data='.$temp->getTmpFolder()]);
         $process->setTimeout(null);
         $process->run();
         if (!$process->isSuccessful()) {

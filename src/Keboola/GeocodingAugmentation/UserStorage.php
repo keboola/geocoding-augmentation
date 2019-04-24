@@ -1,13 +1,7 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
 namespace Keboola\GeocodingAugmentation;
 
-use Keboola\Csv\CsvFile;
-use Symfony\Component\Yaml\Yaml;
+use Keboola\Csv\CsvWriter;
 
 class UserStorage
 {
@@ -25,10 +19,10 @@ class UserStorage
         $this->outputFile = $outputFile;
         $this->destination = $destination;
 
-        $this->file = new CsvFile($this->outputFile);
+        $this->file = new CsvWriter($this->outputFile);
         $this->file->writeRow(self::$columns);
 
-        file_put_contents("$this->outputFile.manifest", Yaml::dump([
+        file_put_contents("$this->outputFile.manifest", json_encode([
             'destination' => $this->destination,
             'incremental' => true,
             'primary_key' => self::$primaryKey

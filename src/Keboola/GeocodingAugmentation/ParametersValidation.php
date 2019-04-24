@@ -1,12 +1,7 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
 namespace Keboola\GeocodingAugmentation;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Csv\CsvReader;
 
 class ParametersValidation
 {
@@ -53,7 +48,7 @@ class ParametersValidation
 
                 break;
             case 'yandex':
-            case 'openstreetmap':
+            case 'nominatim':
                 break;
             default:
                 throw new Exception("Parameter 'provider' with value '{$config['parameters']['provider']}' is not "
@@ -63,7 +58,7 @@ class ParametersValidation
 
     public static function validateTable($method, $table, $csvFile)
     {
-        $csv = new CsvFile($csvFile);
+        $csv = new CsvReader($csvFile);
         if ($method == Augmentation::METHOD_GEOCODE) {
             if (count($csv->getHeader()) != 1) {
                 throw new Exception("Input table $table must have exactly one column with locations to geocode");
