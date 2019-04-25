@@ -1,11 +1,7 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
 
-use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 set_error_handler(
     function ($errno, $errstr, $errfile, $errline, array $errcontext) {
@@ -22,7 +18,12 @@ if (!isset($arguments['data'])) {
     print "Data folder not set.";
     exit(1);
 }
-$config = Yaml::parse(file_get_contents("{$arguments['data']}/config.yml"));
+$configFile = "{$arguments['data']}/config.json";
+if (!file_exists($configFile)) {
+    throw new \Exception("Config file not found at path $configFile");
+}
+$jsonDecode = new JsonDecode(true);
+$config = $jsonDecode->decode(file_get_contents($configFile), JsonEncoder::FORMAT);
 
 if (!file_exists("{$arguments['data']}/out")) {
     mkdir("{$arguments['data']}/out");
@@ -36,6 +37,11 @@ if (isset($config['parameters']['#apiKey'])) {
 }
 if (isset($config['parameters']['#privateKey'])) {
     $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
+}
+
+if ($config['parameters']['provider'] === 'openstreetmap') {
+    // Backwards compatibility
+    $config['parameters']['provider'] = 'nominatim';
 }
 
 try {

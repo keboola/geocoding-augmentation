@@ -1,22 +1,15 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
-
 namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\GeocodingAugmentation\UserStorage;
-use Symfony\Component\Yaml\Yaml;
+use PHPUnit\Framework\TestCase;
 
-class UserStorageTest extends \PHPUnit_Framework_TestCase
+class UserStorageTest extends TestCase
 {
 
     public function testSave()
     {
         $temp = new \Keboola\Temp\Temp();
-        $temp->initRunFolder();
         $table = 'in.c-ag-geocoding.geocoding';
 
         $userStorage = new UserStorage($temp->getTmpFolder()."/$table", $table);
@@ -41,7 +34,7 @@ class UserStorageTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->assertTrue(file_exists("{$temp->getTmpFolder()}/$table.manifest"));
-        $manifest = Yaml::parse(file_get_contents("{$temp->getTmpFolder()}/$table.manifest"));
+        $manifest = json_decode(file_get_contents("{$temp->getTmpFolder()}/$table.manifest"), true);
         $this->assertArrayHasKey('destination', $manifest);
         $this->assertEquals($table, $manifest['destination']);
         $this->assertArrayHasKey('incremental', $manifest);

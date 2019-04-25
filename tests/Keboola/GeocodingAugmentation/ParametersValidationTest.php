@@ -1,17 +1,12 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
-
 namespace Keboola\GeocodingAugmentation\Tests;
 
 use Keboola\GeocodingAugmentation\Exception;
 use Keboola\GeocodingAugmentation\ParametersValidation;
 use Keboola\Temp\Temp;
+use PHPUnit\Framework\TestCase;
 
-class ParametersValidationTest extends \PHPUnit_Framework_TestCase
+class ParametersValidationTest extends TestCase
 {
 
     public function testValidate()
@@ -63,12 +58,13 @@ class ParametersValidationTest extends \PHPUnit_Framework_TestCase
             $this->fail();
         } catch (Exception $e) {
         }
+
+        $this->assertTrue(true);
     }
 
     public function testValidateTable()
     {
         $temp = new Temp();
-        $temp->initRunFolder();
 
         $file = $temp->createFile(uniqid());
         file_put_contents($file->getRealPath(), '1');
@@ -109,5 +105,7 @@ class ParametersValidationTest extends \PHPUnit_Framework_TestCase
             $this->fail();
         } catch (Exception $e) {
         }
+
+        $this->assertTrue(true);
     }
 }

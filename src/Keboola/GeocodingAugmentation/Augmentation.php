@@ -1,25 +1,21 @@
 <?php
-/**
- * @package geocoding-augmentation
- * @copyright Keboola
- * @author Jakub Matejka <jakub@keboola.com>
- */
 namespace Keboola\GeocodingAugmentation;
 
 use Geocoder\Geocoder;
 use Geocoder\Model\AdminLevel;
-use Geocoder\Provider\BingMaps;
-use Geocoder\Provider\GoogleMaps;
-use Geocoder\Provider\GoogleMapsBusiness;
-use Geocoder\Provider\MapQuest;
-use Geocoder\Provider\OpenCage;
-use Geocoder\Provider\OpenStreetMap;
-use Geocoder\Provider\TomTom;
-use Geocoder\Provider\Yandex;
+use Geocoder\Provider\BingMaps\BingMaps;
+use Geocoder\Provider\GoogleMaps\GoogleMaps;
+use Geocoder\Provider\MapQuest\MapQuest;
+use Geocoder\Provider\Nominatim\Nominatim;
+use Geocoder\Provider\OpenCage\OpenCage;
+use Geocoder\Provider\TomTom\TomTom;
+use Geocoder\Provider\Yandex\Yandex;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use Http\Adapter\Guzzle6\Client;
 use InvalidArgumentException;
-use Ivory\HttpAdapter\Guzzle6HttpAdapter;
+use Keboola\Csv\CsvReader;
+use League\Geotools\Batch\BatchGeocoded;
 use League\Geotools\Coordinate\Coordinate;
 use League\Geotools\Geotools;
 use Psr\Http\Message\RequestInterface;
@@ -41,27 +37,24 @@ class Augmentation
     protected $provider;
     protected $locale;
 
-    
+
     public function __construct($outputFile, $destination, $config)
     {
         $this->provider = $config['provider'];
-        $this->locale = !empty($config['locale']) ? $config['locale'] : null;
+        $this->locale = !empty($config['locale']) ? $config['locale'] : 'en';
 
-        $httpAdapter = $this->initAdapter();
-        $provider = $this->setupProvider($httpAdapter, $config);
+        $httpClient = $this->initHttpClient();
+        $provider = $this->setupProvider($httpClient, $config);
 
-        $this->geocoder = new \Geocoder\ProviderAggregator();
-        $this->geocoder
-            ->registerProvider($provider)
-            ->using($config['provider']);
+        $this->geocoder = new ProviderAggregator($provider, $this->locale);
         $this->geotools = new Geotools();
-        
+
         $this->userStorage = new UserStorage($outputFile, $destination);
     }
 
     public function process($method, $dataFile)
     {
-        $csvFile = new \Keboola\Csv\CsvFile($dataFile);
+        $csvFile = new CsvReader($dataFile);
 
         // query for each 50 lines from the file
         $countInBatch = 50;
@@ -101,7 +94,7 @@ class Augmentation
         $result = $batch->parallel();
 
         foreach ($result as $g) {
-            /** @var \League\Geotools\Batch\BatchGeocoded $g */
+            /** @var BatchGeocoded $g */
             $address = $g->getAddress();
             $adminLevels = $address ? $address->getAdminLevels() : null;
             /** @var AdminLevel $region */
@@ -179,7 +172,7 @@ class Augmentation
         return $result;
     }
 
-    protected function initAdapter()
+    protected function initHttpClient()
     {
         $handlerStack = HandlerStack::create();
         /** @noinspection PhpUnusedParameterInspection */
@@ -192,12 +185,11 @@ class Augmentation
             }
         ));
         $client = new \GuzzleHttp\Client(['handler' => $handlerStack]);
-        return new Guzzle6HttpAdapter($client);
+        return new Client($client);
     }
 
-    protected function setupProvider($httpAdapter, $config)
+    protected function setupProvider($httpClient, $config)
     {
-        $locale = isset($config['locale']) ? $config['locale'] : 'en';
         if (!isset($config['provider'])) {
             throw new Exception("No provider configured");
         }
@@ -209,7 +201,7 @@ class Augmentation
         }
         switch ($config['provider']) {
             case 'google_maps':
-                return new GoogleMaps($httpAdapter, $locale, null, true, $config['apiKey']);
+                return new GoogleMaps($httpClient, null, $config['apiKey']);
                 break;
             case 'google_maps_business':
                 if (!isset($config['clientId'])) {
@@ -218,32 +210,29 @@ class Augmentation
                 if (!isset($config['privateKey'])) {
                     throw new Exception("Provider {$config['provider']} needs 'privateKey' attribute configured");
                 }
-                return new GoogleMapsBusiness(
-                    $httpAdapter,
-                    $config['clientId'],
-                    $config['privateKey'],
-                    $locale,
-                    null,
-                    true
-                );
+                return GoogleMaps::business($httpClient, $config['clientId'], $config['privateKey']);
                 break;
             case 'bing_maps':
-                return new BingMaps($httpAdapter, $config['apiKey'], $locale);
+                return new BingMaps($httpClient, $config['apiKey']);
                 break;
             case 'yandex':
-                return new Yandex($httpAdapter, $locale);
+                return new Yandex($httpClient);
                 break;
             case 'map_quest':
-                return new MapQuest($httpAdapter, $config['apiKey'], $locale);
+                return new MapQuest($httpClient, $config['apiKey']);
                 break;
             case 'tomtom':
-                return new TomTom($httpAdapter, $config['apiKey'], $locale);
+                return new TomTom($httpClient, $config['apiKey']);
                 break;
             case 'opencage':
-                return new OpenCage($httpAdapter, $config['apiKey'], true, $locale);
+                return new OpenCage($httpClient, $config['apiKey']);
                 break;
-            case 'openstreetmap':
-                return new OpenStreetMap($httpAdapter, $locale);
+            case 'nominatim':
+                return new Nominatim(
+                    $httpClient,
+                    'https://nominatim.openstreetmap.org',
+                    'keboola/geocoding-augmentation'
+                );
                 break;
             default:
                 throw new Exception("Unknown configured provider {$config['provider']}");
