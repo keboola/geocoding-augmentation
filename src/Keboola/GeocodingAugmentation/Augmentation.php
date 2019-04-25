@@ -10,7 +10,6 @@ use Geocoder\Provider\Nominatim\Nominatim;
 use Geocoder\Provider\OpenCage\OpenCage;
 use Geocoder\Provider\TomTom\TomTom;
 use Geocoder\Provider\Yandex\Yandex;
-use Geocoder\ProviderAggregator;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Http\Adapter\Guzzle6\Client;
@@ -42,15 +41,12 @@ class Augmentation
     public function __construct($outputFile, $destination, $config)
     {
         $this->provider = $config['provider'];
-        $this->locale = !empty($config['locale']) ? $config['locale'] : null;
+        $this->locale = !empty($config['locale']) ? $config['locale'] : 'en';
 
         $httpClient = $this->initHttpClient();
         $provider = $this->setupProvider($httpClient, $config);
 
-        $this->geocoder = new ProviderAggregator();
-        $this->geocoder
-            ->registerProvider($provider)
-            ->using($this->provider);
+        $this->geocoder = new ProviderAggregator($provider, $this->locale);
         $this->geotools = new Geotools();
 
         $this->userStorage = new UserStorage($outputFile, $destination);

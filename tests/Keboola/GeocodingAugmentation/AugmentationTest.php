@@ -132,7 +132,7 @@ class AugmentationTest extends TestCase
         $row = $data->current();
         $this->assertEquals('google_maps', $row[2]);
         $this->assertEquals('cs', $row[3]);
-        $this->assertEquals('Prague', $row[12]);
+        $this->assertEquals('Praha', $row[12]);
         $this->assertEquals('CZ', $row[20]);
     }
 }
