@@ -104,4 +104,39 @@ class FunctionalTest extends TestCase
         $this->assertFileExists("{$temp->getTmpFolder()}/out/tables/geocoding.csv");
         $this->assertCount(1, file("{$temp->getTmpFolder()}/out/tables/geocoding.csv"));
     }
+
+    public function testFunctionalEmptyProvider()
+    {
+        $temp = new Temp();
+
+        file_put_contents($temp->getTmpFolder() . '/config.json', json_encode([
+            'storage' => [
+                'input' => [
+                    'tables' => [
+                        [
+                            'source' => 'in.c-main.coordinates',
+                            'destination' => 'coordinates.csv'
+                        ]
+                    ]
+                ],
+                'output' => [
+                    'tables' => [
+                        [
+                            'destination' => 'in.c-main.geocoding',
+                            'source' => 'geocoding.csv'
+                        ]
+                    ]
+                ]
+            ],
+            'parameters' => [
+                'method' => 'reverse',
+            ]
+        ]));
+
+        $process = new Process(['php', __DIR__.'/../../../src/run.php', '--data='.$temp->getTmpFolder()]);
+        $process->setTimeout(null);
+        $process->run();
+        $this->assertStringContainsString("Missing parameter 'provider'", $process->getOutput(), $process->getErrorOutput());
+        $this->assertEquals(1, $process->getExitCode());
+    }
 }
