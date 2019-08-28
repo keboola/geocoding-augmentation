@@ -57,7 +57,7 @@ class AugmentationTest extends TestCase
         $this->assertEquals('Praha', $row[12]);
         $this->assertEquals('okres Hlavní město Praha', $row[15]);
         $this->assertEquals('Praha', $row[17]);
-        $this->assertEquals('Česko', $row[19]);
+        $this->assertEquals('Česká republika', $row[19]);
         $this->assertEquals('CZ', $row[20]);
     }
 
