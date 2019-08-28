@@ -39,7 +39,7 @@ if (isset($config['parameters']['#privateKey'])) {
     $config['parameters']['privateKey'] = $config['parameters']['#privateKey'];
 }
 
-if ($config['parameters']['provider'] === 'openstreetmap') {
+if (!empty($config['parameters']['provider']) && ($config['parameters']['provider'] === 'openstreetmap')) {
     // Backwards compatibility
     $config['parameters']['provider'] = 'nominatim';
 }
