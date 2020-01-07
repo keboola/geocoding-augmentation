@@ -130,10 +130,7 @@ class Augmentation
             ];
 
             if (empty($data['exceptionMessage'])) {
-                if ($method == self::METHOD_GEOCODE
-                    ? $g->getLatitude() == 0 && $g->getLongitude() == 0
-                    : !$g->getAddress()->getCountry()
-                ) {
+                if ($this->isNoResultError($method, $g)) {
                     error_log("No result for location '{$g->getQuery()}' found");
                 }
             } else {
@@ -143,6 +140,15 @@ class Augmentation
                 }
             }
             $this->userStorage->save($data);
+        }
+    }
+
+    private function isNoResultError($method, $g)
+    {
+        if ($method == self::METHOD_GEOCODE) {
+            return $g->getLatitude() == 0 && $g->getLongitude() == 0;
+        } else {
+            return (is_null($g->getAddress()) || !$g->getAddress()->getCountry());
         }
     }
 
