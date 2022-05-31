@@ -75,3 +75,7 @@ The app will save data to single table filled incrementally with following colum
 - **timezone**: timezone of the location
 
 Please note that some providers does not provide all data but just some of them.
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
